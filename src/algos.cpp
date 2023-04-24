@@ -473,8 +473,8 @@ bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const GFN2GeneratorP
 ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps)
 {
     auto getPower = [&generatorPoints](int_fast64_t num){
-        auto it = std::find(generatorPoints.begin(), generatorPoints.end(), num);
-        return std::distance(generatorPoints.begin(), std::find(generatorPoints.begin(), generatorPoints.end(), num));
+        auto pointIt = std::find(generatorPoints.cbegin(), generatorPoints.cend(), num);
+        return std::distance(generatorPoints.cbegin(), pointIt);
     };
     
     ECPoint pInverse;
