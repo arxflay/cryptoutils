@@ -1,6 +1,7 @@
 #include "handlers.h"
 
 #include "algos.h"
+#include <array>
 #include <string_view>
 #include <iostream>
 #include <map>

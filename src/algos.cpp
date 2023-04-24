@@ -1,6 +1,7 @@
 #include "algos.h"
 
 #include <iostream>
+#include <array>
 #include <cmath>
 #include <utility>
 #include <algorithm>
@@ -12,7 +13,7 @@
 /* naive implementation */
 uint_least64_t CalculateHammingWeight(const char *data, size_t len)
 {
-    uint_least64_t weight;
+    uint_least64_t weight = 0;
     for (size_t i = 0; i < len; i++)
         for (uint_fast8_t j = 1; j < sizeof(char); j++)
             weight += (data[i] & (1 << j)) >> j;
@@ -57,7 +58,7 @@ int_fast64_t ModExp(int_fast64_t num, int_fast64_t power, int_fast64_t mod)
     for (int_fast64_t i = 1; i < 64; i++)
     {
         prev = (prev * prev) % mod;
-        if (power & (1L << i))
+        if (power & (1LL << i))
             result = (prev * result) % mod;
     }
 
