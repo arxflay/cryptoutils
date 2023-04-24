@@ -9,6 +9,7 @@
 #include <random>
 #include <exception>
 #include <fmt/core.h>
+#include <set>
 
 /* naive implementation */
 uint_least64_t CalculateHammingWeight(const char *data, size_t len)
@@ -68,6 +69,176 @@ int_fast64_t ModExp(int_fast64_t num, int_fast64_t power, int_fast64_t mod)
 int_fast64_t PositiveMod(int_fast64_t num, int_fast64_t mod)
 {
     return (num >= 0) ? (num % mod) : ((num % mod) + mod);
+}
+
+/*returns MSB from 1*/
+uint_fast8_t GetMSB(uint_fast64_t num)
+{
+    uint_fast64_t firstByte = 0xFF;
+    uint_fast8_t index = 0;
+
+    for (int_fast8_t byte = 7; byte >= 0; byte--)
+    {
+        uint_fast64_t byteOfInterest = firstByte << (8 * byte);
+        if (!(num & byteOfInterest))
+            continue;
+        
+        num = (num & byteOfInterest) >> (8 * byte);
+        for (int_fast8_t pos = 7; pos >= 0; pos--)
+        {
+            if (num & (1 << pos))
+            {
+                index = 8 * byte + (uint_fast8_t)pos + 1;
+                break;
+            }
+        }
+    }
+
+    return index;
+}
+
+uint_fast64_t MultiplyBinary(uint_fast64_t number, uint_fast64_t multiplicant)
+{
+    uint_fast8_t multiplicantMSB = GetMSB(multiplicant);
+    uint_fast64_t out = 0;
+    for (uint_fast64_t i = 0; i < multiplicantMSB; i++)
+        if (multiplicant & (1 << i))
+            out ^= (number << i);
+    
+    return out;
+}
+
+std::string ConvertNumberToBinary(uint_fast64_t number, uint_fast64_t minLen)
+{
+    if (minLen == 0)  
+        minLen = GetMSB(number);
+
+    std::string out;
+
+    for (size_t i = 0; i < minLen; i++)
+         out = ((!!(number & (1 << i))) ? "1" : "0") + out;
+
+    return out;
+}
+
+uint_fast64_t ConvertBinaryToNumber(std::string_view binary)
+{
+    uint_fast64_t result = 0;
+    int strLen = static_cast<int>(binary.length());
+    if (strLen == 0)
+        return 0;
+
+    for (int i = strLen - 1; i >= 0; i--)
+        if (binary[i] == '1')
+            result |= (1 << ((strLen - 1) - i));
+
+    return result;
+}
+
+bool IsGeneratorGFP(uint_fast64_t generator, uint_fast64_t mod, std::string *steps)
+{
+    if (mod <= generator)
+        throw std::runtime_error("mod <= generator");
+
+    if (steps)
+    {
+        *steps = fmt::format("{}^0 = {}\n", generator, 1);
+        *steps += fmt::format("{}^1 = {}\n", generator, generator);
+    }
+
+    std::set<uint_fast64_t> numbers;
+    numbers.insert(1);
+    numbers.insert(generator);
+
+    uint_fast64_t number = generator;
+
+    for (size_t i = 2; i < (mod - 1); i++)
+    {
+        number = (number * number) % mod;
+        if (steps)
+            *steps += fmt::format("{}^{} = {}\n", generator, i, number);
+
+        if (numbers.insert(number).second == false)
+            return false;
+    }
+
+    return true;
+}
+
+uint_fast64_t ReduceGF2N(const GFN2GeneratorParameters &parameters, uint_fast64_t polynomial)
+{
+    while(polynomial >= (1 << parameters.n))
+    {
+        uint_fast8_t msb = GetMSB(polynomial);
+        polynomial ^= parameters.ireduciblePolynomial << (msb - (parameters.n + 1));
+    }
+
+    return polynomial;
+}
+
+bool IsGeneratorGF2N(const GFN2GeneratorParameters &parameters, std::string *steps)
+{
+    if (parameters.n <=1)
+        return true;
+    else if (parameters.ireduciblePolynomial <= parameters.polynomial)
+        throw std::runtime_error("ireduciblePolynomial <= polynomial");
+
+    uint_fast64_t uniqueCounter = 1; //every g^0 equals = 1, so at least 
+    uint_fast64_t number = parameters.polynomial;
+    uint_fast64_t mod = (uint_fast64_t)std::pow(2, parameters.n);
+
+    std::string polynomialStr = ConvertNumberToBinary(parameters.polynomial, parameters.n);
+    
+    if (steps)
+    {
+        *steps = fmt::format("{}^0 = {}\n", polynomialStr, ConvertNumberToBinary(1, parameters.n));
+        *steps += fmt::format("{}^1 = {}\n", polynomialStr, polynomialStr);
+    }
+
+    std::set<uint_fast64_t> numbers;
+    numbers.insert(1);
+    numbers.insert(parameters.polynomial);
+
+    //start from 2 because first two numbers are already known
+    //mod - 1 because first number ^0 is already known, otherwise sequence will repeat
+    for (uint_fast64_t i = 2; i < mod - 1; i++)
+    {
+        number = MultiplyBinary(number, parameters.polynomial);
+        number = ReduceGF2N(parameters, number);
+
+        if (steps)
+            *steps += fmt::format("{}^{} = {}\n", polynomialStr, i, ConvertNumberToBinary(number, parameters.n));
+        
+        if (numbers.insert(number).second == false)
+            return false;
+    }
+
+    return true;
+}
+
+std::vector<uint_fast64_t> GetGF2NGeneratorElements(const GFN2GeneratorParameters &parameters)
+{
+    uint_fast64_t number = parameters.polynomial;
+    uint_fast64_t mod = (uint_fast64_t)std::pow(2, parameters.n);
+
+    std::vector<uint_fast64_t> numbers;
+    numbers.push_back(1);
+    numbers.push_back(parameters.polynomial);
+
+    //start from 2 because first two numbers are already known
+    //mod - 1 because first number ^0 is already known, otherwise sequence will repeat
+    for (uint_fast64_t i = 2; i < mod - 1; i++)
+    {
+        number = MultiplyBinary(number, parameters.polynomial);
+        while(number >= (1 << parameters.n))
+        {
+            uint_fast8_t msb = GetMSB(number);
+            number ^= parameters.ireduciblePolynomial << (msb - (parameters.n + 1));
+        }        
+        numbers.push_back(number);
+    }
+
+    return numbers;
 }
 
 std::tuple<int_fast64_t, int_fast64_t> DoFermantFactorization(int_fast64_t number, std::string *steps)
@@ -248,7 +419,6 @@ ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::str
     /*Point doubling*/
     if (p == q)
         return ECDoubling(curve, p, steps);
-
     //s = slope
     int_fast64_t s = ((p.y - q.y) * InverseMod(PositiveMod(p.x - q.x, curve.p), curve.p)) % curve.p;
     ECPoint newPoint;
@@ -271,6 +441,62 @@ ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::str
         str += fmt::format("xr = {}^2 - {} - {} mod {} = {}\n", s, p.x, q.x, curve.p, newPoint.x);
         str += fmt::format("yr = {} * ({} - {}) - {} mod {} = {}", s, p.x, newPoint.x, p.y, curve.p, newPoint.y);
     }
+
+    return newPoint;
+}
+
+/*calculation are based on g^powers*/
+bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const GFN2GeneratorParameters &parameters, std::string *steps)
+{
+    std::vector<uint_fast64_t> generatorPoints = GetGF2NGeneratorElements(parameters);
+    
+    int_fast64_t positiveX = PositiveMod(p.x, curve.p); //p.x = power x from g^x, ex. g^1, x = 1
+    int_fast64_t positiveY = PositiveMod(p.y, curve.p); //p.y = power y from g^y, ex. g^1, y = 1
+
+    int_fast64_t y2 = generatorPoints.at((positiveY * 2) % curve.p); //power multiplication
+    int_fast64_t xy = generatorPoints.at((positiveX + positiveY) % curve.p); //sum of powers
+                                                                              
+    int_fast64_t x3 = generatorPoints.at((positiveX * 3) % curve.p);
+    int_fast64_t x2 = generatorPoints.at((curve.a + positiveX * 2) % curve.p);
+    int_fast64_t b = generatorPoints.at(curve.b);
+
+    if (steps)
+        *steps = fmt::format("{} + {} = {} + {} + {}", ConvertNumberToBinary(y2, parameters.n)
+                , ConvertNumberToBinary(xy, parameters.n)
+                , ConvertNumberToBinary(x3, parameters.n)
+                , ConvertNumberToBinary(x2, parameters.n)
+                , ConvertNumberToBinary(b, parameters.n));
+    
+    return (y2 ^ xy) == (x3 ^ x2 ^ b);
+}
+
+ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps)
+{
+    auto getPower = [&generatorPoints](int_fast64_t num){
+        auto it = std::find(generatorPoints.begin(), generatorPoints.end(), num);
+        return std::distance(generatorPoints.begin(), std::find(generatorPoints.begin(), generatorPoints.end(), num));
+    };
+    
+    ECPoint pInverse;
+    pInverse.x = p.x;
+    pInverse.y = p.x ^ p.y;
+
+    if (pInverse == q) 
+        throw std::runtime_error("Q equals to -P, P + -P = O, O = point at infinity");
+
+    /*slope*/
+    
+    ECPoint newPoint;
+    
+    int_fast64_t s = PositiveMod(getPower(p.y ^ q.y) - getPower(p.x ^ q.x), curve.p);
+    int_fast64_t sNum = generatorPoints.at(s);
+    int_fast64_t sSquareNum = generatorPoints.at((s * 2) % curve.p);
+    
+    int_fast64_t xr = sSquareNum ^ sNum ^ p.x ^ q.x ^ curve.a;
+    int_fast64_t yr = generatorPoints.at((s + getPower(p.x ^ xr)) % curve.p) ^ xr ^ p.y;
+
+    newPoint.x = xr;
+    newPoint.y = yr;
 
     return newPoint;
 }

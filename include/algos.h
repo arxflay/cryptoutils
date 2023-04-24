@@ -15,7 +15,24 @@ int_fast64_t GCD(int_fast64_t num, int_fast64_t mod);
 
 int_fast64_t ModExp(int_fast64_t num, int_fast64_t power, int_fast64_t mod);
 int_fast64_t Mod(int_fast64_t num, int_fast64_t mod);
+int_fast64_t PositiveMod(int_fast64_t num, int_fast64_t mod);
+uint_fast8_t GetMSB(uint_fast64_t num);
 
+uint_fast64_t MultiplyBinary(uint_fast64_t number, uint_fast64_t multiplicant);
+std::string ConvertNumberToBinary(uint_fast64_t number, uint_fast64_t minLen);
+uint_fast64_t ConvertBinaryToNumber(std::string_view binary);
+
+struct GFN2GeneratorParameters
+{
+    uint_fast64_t polynomial;
+    uint_fast64_t ireduciblePolynomial;
+    uint_fast64_t n;
+};
+
+bool IsGeneratorGFP(uint_fast64_t generator, uint_fast64_t mod, std::string *steps = nullptr);
+bool IsGeneratorGF2N(const GFN2GeneratorParameters &parameters, std::string *steps = nullptr);
+
+std::vector<uint_fast64_t> GetGF2NGeneratorElements(const GFN2GeneratorParameters &parameters);
 /*Factorization methods */
 
 std::tuple<int_fast64_t, int_fast64_t> DoFermantFactorization(int_fast64_t number, std::string *steps = nullptr);
@@ -83,3 +100,5 @@ bool ECAlignsOn(const ECCurve &curve, const ECPoint &p);
 ECPoint ECDoubling(const ECCurve &curve, const ECPoint &p, std::string *steps = nullptr);
 ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::string *steps = nullptr);
 
+bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const GFN2GeneratorParameters &parameters, std::string *steps = nullptr);
+ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
