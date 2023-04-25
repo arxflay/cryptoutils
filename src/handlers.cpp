@@ -226,7 +226,7 @@ static inline int HandleEcGF2N(int argc, const char **argv)
             return -1;
         }
 
-        GFN2GeneratorParameters generatorParameters;
+        GF2NGeneratorParameters generatorParameters;
         generatorParameters.polynomial = ConvertBinaryToNumber(argv[4]);
         generatorParameters.ireduciblePolynomial = ConvertBinaryToNumber(argv[5]);
         generatorParameters.n = atol(argv[6]);
@@ -265,7 +265,7 @@ static inline int HandleEcGF2N(int argc, const char **argv)
             return -1;
         }
 
-        GFN2GeneratorParameters generatorParameters;
+        GF2NGeneratorParameters generatorParameters;
         generatorParameters.polynomial = ConvertBinaryToNumber(argv[4]);
         generatorParameters.ireduciblePolynomial = ConvertBinaryToNumber(argv[5]);
         generatorParameters.n = atol(argv[6]);
@@ -303,7 +303,7 @@ static inline int HandleEcGF2N(int argc, const char **argv)
             return -1;
         }
 
-        GFN2GeneratorParameters generatorParameters;
+        GF2NGeneratorParameters generatorParameters;
         generatorParameters.polynomial = ConvertBinaryToNumber(argv[4]);
         generatorParameters.ireduciblePolynomial = ConvertBinaryToNumber(argv[5]);
         generatorParameters.n = atol(argv[6]);
@@ -464,7 +464,7 @@ int HandleIsGenerator(int argc, const char **argv)
             fmt::print("{} ireduciblePolynomial(binary) n polynomials(binary)...\n", beginMessage);
             return -1;
         }
-        GFN2GeneratorParameters parameters;
+        GF2NGeneratorParameters parameters;
         parameters.ireduciblePolynomial = ConvertBinaryToNumber(argv[1]);
         parameters.n = atol(argv[2]);
         for (int i = 3; i < argc; i++)

@@ -22,7 +22,7 @@ uint_fast64_t MultiplyBinary(uint_fast64_t number, uint_fast64_t multiplicant);
 std::string ConvertNumberToBinary(uint_fast64_t number, uint_fast64_t minLen);
 uint_fast64_t ConvertBinaryToNumber(std::string_view binary);
 
-struct GFN2GeneratorParameters
+struct GF2NGeneratorParameters
 {
     uint_fast64_t polynomial;
     uint_fast64_t ireduciblePolynomial;
@@ -30,9 +30,9 @@ struct GFN2GeneratorParameters
 };
 
 bool IsGeneratorGFP(uint_fast64_t generator, uint_fast64_t mod, std::string *steps = nullptr);
-bool IsGeneratorGF2N(const GFN2GeneratorParameters &parameters, std::string *steps = nullptr);
+bool IsGeneratorGF2N(const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
 
-std::vector<uint_fast64_t> GetGF2NGeneratorElements(const GFN2GeneratorParameters &parameters);
+std::vector<uint_fast64_t> GetGF2NGeneratorElements(const GF2NGeneratorParameters &parameters);
 /*Factorization methods */
 
 std::tuple<int_fast64_t, int_fast64_t> DoFermantFactorization(int_fast64_t number, std::string *steps = nullptr);
@@ -100,7 +100,7 @@ bool ECAlignsOn(const ECCurve &curve, const ECPoint &p);
 ECPoint ECDouble(const ECCurve &curve, const ECPoint &p, std::string *steps = nullptr);
 ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::string *steps = nullptr);
 
-bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, const GFN2GeneratorParameters &parameters, std::string *steps = nullptr);
+bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
 ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
 ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
 ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, uint_fast64_t scalar, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);

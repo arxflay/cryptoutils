@@ -165,7 +165,7 @@ bool IsGeneratorGFP(uint_fast64_t generator, uint_fast64_t mod, std::string *ste
     return true;
 }
 
-uint_fast64_t ReduceGF2N(const GFN2GeneratorParameters &parameters, uint_fast64_t polynomial)
+uint_fast64_t ReduceGF2N(const GF2NGeneratorParameters &parameters, uint_fast64_t polynomial)
 {
     while(polynomial >= (1 << parameters.n))
     {
@@ -176,7 +176,7 @@ uint_fast64_t ReduceGF2N(const GFN2GeneratorParameters &parameters, uint_fast64_
     return polynomial;
 }
 
-bool IsGeneratorGF2N(const GFN2GeneratorParameters &parameters, std::string *steps)
+bool IsGeneratorGF2N(const GF2NGeneratorParameters &parameters, std::string *steps)
 {
     if (parameters.n <=1)
         return true;
@@ -216,7 +216,7 @@ bool IsGeneratorGF2N(const GFN2GeneratorParameters &parameters, std::string *ste
     return true;
 }
 
-std::vector<uint_fast64_t> GetGF2NGeneratorElements(const GFN2GeneratorParameters &parameters)
+std::vector<uint_fast64_t> GetGF2NGeneratorElements(const GF2NGeneratorParameters &parameters)
 {
     uint_fast64_t number = parameters.polynomial;
     uint_fast64_t mod = (uint_fast64_t)std::pow(2, parameters.n);
@@ -446,7 +446,7 @@ ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::str
 }
 
 /*calculation are based on g^powers*/
-bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, const GFN2GeneratorParameters &parameters, std::string *steps)
+bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps)
 {
     auto getPower = [&generatorPoints](int_fast64_t num){
         auto pointIt = std::find(generatorPoints.cbegin(), generatorPoints.cend(), num);
