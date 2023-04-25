@@ -97,8 +97,10 @@ struct ECCurve
 };
 
 bool ECAlignsOn(const ECCurve &curve, const ECPoint &p);
-ECPoint ECDoubling(const ECCurve &curve, const ECPoint &p, std::string *steps = nullptr);
+ECPoint ECDouble(const ECCurve &curve, const ECPoint &p, std::string *steps = nullptr);
 ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::string *steps = nullptr);
 
-bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const GFN2GeneratorParameters &parameters, std::string *steps = nullptr);
+bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, const GFN2GeneratorParameters &parameters, std::string *steps = nullptr);
+ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
 ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
+ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, uint_fast64_t scalar, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
