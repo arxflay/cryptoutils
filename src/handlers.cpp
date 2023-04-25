@@ -199,7 +199,7 @@ static inline int HandleEcGF2N(int argc, const char **argv)
 
     if (argc < 2 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("enter GF(2^n) sum/multiply/alignson/\n");
+        fmt::print("enter GF(2^n) sum/multiply/alignson\n");
         return -1;
     } 
 
@@ -257,29 +257,75 @@ static inline int HandleEcGF2N(int argc, const char **argv)
             fmt::print("{}\n", e.what());
         }
     }
-    else if (cmdIndex == 2)
+    else if (cmdIndex == 1)
     {
-        if (argc < 9)
+        if (argc < 10)
         {
-            fmt::print("Enter GF(2^n) alignson curve_a_power curve_b_power polynomial(binary) ireduciblePolynomial(binary) n x0_power y0_power\n");
+            fmt::print("Enter GF(2^n) sum curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 scalar\n");
             return -1;
         }
 
-        ECCurve curve;
-        curve.a = atol(argv[2]);
-        curve.b = atol(argv[3]);
-        
         GFN2GeneratorParameters generatorParameters;
         generatorParameters.polynomial = ConvertBinaryToNumber(argv[4]);
         generatorParameters.ireduciblePolynomial = ConvertBinaryToNumber(argv[5]);
         generatorParameters.n = atol(argv[6]);
+        std::vector<uint_fast64_t> generatorPoints = GetGF2NGeneratorElements(generatorParameters);
+        
+        ECCurve curve;
+        curve.a = getGenPoints(generatorPoints, argv[2]);
+        curve.b = getGenPoints(generatorPoints, argv[3]);
         curve.p = (int_fast64_t)std::pow(2, generatorParameters.n) - 1;
 
         ECPoint p;
-        p.x = atol(argv[7]);
-        p.y = atol(argv[8]);
-        fmt::print("Does point (g^{}, g^{}) aligns on curve y^2 + xy = x^3 + g^{}*x^2 + g^{}?\n", p.x, p.y, curve.a, curve.b);
-        fmt::print("{}\n{}\n", steps, (ECAlignsOnGF2N(curve, p, generatorParameters, &steps)) ? "Yes" : "No");
+        p.x = getGenPoints(generatorPoints, argv[7]);
+        p.y = getGenPoints(generatorPoints, argv[8]);
+
+        uint_fast64_t scalar = atol(argv[9]);
+        
+        try
+        {
+            ECPoint newPoint = ECMultiplyGF2N(curve, p, scalar, generatorPoints, &steps);
+            fmt::print("NewPoint = ({}, {})\n"
+                    , newPoint.x == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, newPoint.x))
+                    , newPoint.y == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, newPoint.y)));
+        }
+        catch(const std::runtime_error &e)
+        {
+            fmt::print("{}\n", e.what());
+        }
+
+    }
+    else if (cmdIndex == 2)
+    {
+        if (argc < 9)
+        {
+            fmt::print("Enter GF(2^n) alignson curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0\n");
+            return -1;
+        }
+
+        GFN2GeneratorParameters generatorParameters;
+        generatorParameters.polynomial = ConvertBinaryToNumber(argv[4]);
+        generatorParameters.ireduciblePolynomial = ConvertBinaryToNumber(argv[5]);
+        generatorParameters.n = atol(argv[6]);
+        std::vector<uint_fast64_t> generatorPoints = GetGF2NGeneratorElements(generatorParameters);
+        
+        ECCurve curve;
+        curve.a = getGenPoints(generatorPoints, argv[2]);
+        curve.b = getGenPoints(generatorPoints, argv[3]);
+        curve.p = (int_fast64_t)std::pow(2, generatorParameters.n) - 1;
+
+        ECPoint p;
+        p.x = getGenPoints(generatorPoints, argv[7]);
+        p.y = getGenPoints(generatorPoints, argv[8]);
+
+        fmt::print("Does point ({}, {}) aligns on curve y^2 + xy = x^3 + {}*x^2 + {}?\n"
+                , p.x == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, p.x))
+                , p.y == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, p.y))
+                , curve.a == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, curve.a))
+                , curve.b == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, curve.b))
+        );
+
+        fmt::print("{}\n{}\n", steps, (ECAlignsOnGF2N(curve, p, generatorPoints, generatorParameters, &steps)) ? "Yes" : "No");
 
     }
 

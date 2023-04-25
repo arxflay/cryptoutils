@@ -390,7 +390,7 @@ bool ECAlignsOn(const ECCurve &curve, const ECPoint &p)
     return (p.y * p.y) % curve.p == PositiveMod((p.x * p.x * p.x) + curve.a * p.x + curve.b, curve.p);
 }
 
-ECPoint ECDoubling(const ECCurve &curve, const ECPoint &p, std::string *steps)
+ECPoint ECDouble(const ECCurve &curve, const ECPoint &p, std::string *steps)
 {
     if (p.y == 0)
         throw std::invalid_argument("p.y must be highier than 0");
@@ -418,7 +418,7 @@ ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::str
 {
     /*Point doubling*/
     if (p == q)
-        return ECDoubling(curve, p, steps);
+        return ECDouble(curve, p, steps);
     //s = slope
     int_fast64_t s = ((p.y - q.y) * InverseMod(PositiveMod(p.x - q.x, curve.p), curve.p)) % curve.p;
     ECPoint newPoint;
@@ -446,36 +446,86 @@ ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::str
 }
 
 /*calculation are based on g^powers*/
-bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const GFN2GeneratorParameters &parameters, std::string *steps)
+bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, const GFN2GeneratorParameters &parameters, std::string *steps)
 {
-    std::vector<uint_fast64_t> generatorPoints = GetGF2NGeneratorElements(parameters);
+    auto getPower = [&generatorPoints](int_fast64_t num){
+        auto pointIt = std::find(generatorPoints.cbegin(), generatorPoints.cend(), num);
+        return std::distance(generatorPoints.cbegin(), pointIt);
+    };
     
-    int_fast64_t positiveX = PositiveMod(p.x, curve.p); //p.x = power x from g^x, ex. g^1, x = 1
-    int_fast64_t positiveY = PositiveMod(p.y, curve.p); //p.y = power y from g^y, ex. g^1, y = 1
+    int_fast64_t xPower      = p.x     == 0 ? 0 : getPower(p.x); 
+    int_fast64_t yPower      = p.y     == 0 ? 0 : getPower(p.y);
+    int_fast64_t curveAPower = curve.a == 0 ? 0 : getPower(curve.a);
 
-    int_fast64_t y2 = generatorPoints.at((positiveY * 2) % curve.p); //power multiplication
-    int_fast64_t xy = generatorPoints.at((positiveX + positiveY) % curve.p); //sum of powers
+    int_fast64_t y2 = p.y == 0 ? 0 : generatorPoints.at((yPower * 2) % curve.p); //power multiplication
+    int_fast64_t xy = (!xPower || !yPower) ? 0 : generatorPoints.at((xPower + yPower) % curve.p); //sum of powers
                                                                               
-    int_fast64_t x3 = generatorPoints.at((positiveX * 3) % curve.p);
-    int_fast64_t x2 = generatorPoints.at((curve.a + positiveX * 2) % curve.p);
-    int_fast64_t b = generatorPoints.at(curve.b);
+    int_fast64_t x3 = p.x == 0 ? 0 : generatorPoints.at((xPower * 3) % curve.p);
+    int_fast64_t x2 = (!curveAPower || !xPower) ? 0 : generatorPoints.at((curveAPower + xPower * 2) % curve.p);
 
     if (steps)
         *steps = fmt::format("{} + {} = {} + {} + {}", ConvertNumberToBinary(y2, parameters.n)
                 , ConvertNumberToBinary(xy, parameters.n)
                 , ConvertNumberToBinary(x3, parameters.n)
                 , ConvertNumberToBinary(x2, parameters.n)
-                , ConvertNumberToBinary(b, parameters.n));
+                , ConvertNumberToBinary(curve.b, parameters.n));
     
-    return (y2 ^ xy) == (x3 ^ x2 ^ b);
+    return (y2 ^ xy) == (x3 ^ x2 ^ curve.b);
 }
 
-ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps)
+ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps)
 {
+    if (p.x == 0)
+        throw std::runtime_error("2P = O, O = point at infinity");
+   
     auto getPower = [&generatorPoints](int_fast64_t num){
         auto pointIt = std::find(generatorPoints.cbegin(), generatorPoints.cend(), num);
         return std::distance(generatorPoints.cbegin(), pointIt);
     };
+
+    ECPoint newPoint;
+
+    int_fast64_t s = 0;
+    int_fast64_t sNum = p.x;
+    int_fast64_t sNumSquare = 0;
+    int_fast64_t xSquare = generatorPoints.at((getPower(p.x) * 2) % curve.p); //ok
+    
+    if (p.y)
+    {
+        int_fast64_t pyDivPxGN = PositiveMod(getPower(p.y) - getPower(p.x),  curve.p);
+        sNum ^= generatorPoints.at(pyDivPxGN);
+    }
+
+    if (sNum)
+    {
+        s = getPower(sNum);
+        sNumSquare = generatorPoints.at((s * 2) % curve.p);
+    }
+
+    int_fast64_t xr = sNumSquare ^ sNum ^ curve.a;
+    int_fast64_t sOneSum = sNum ^ 1;
+    int_fast64_t xrMultS = 0;
+    if (xr && sOneSum)
+        xrMultS = generatorPoints.at(PositiveMod(getPower(xr) + getPower(sOneSum), curve.p));
+
+    int_fast64_t yr = xSquare ^ xrMultS; 
+    
+    newPoint.x = xr;
+    newPoint.y = yr;
+
+    return newPoint;
+}
+
+
+ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps)
+{
+    if (p == q)
+        return ECDoubleGF2N(curve, p, generatorPoints, steps);
+
+    auto getPower = [&generatorPoints](int_fast64_t num){
+        auto pointIt = std::find(generatorPoints.cbegin(), generatorPoints.cend(), num);
+        return std::distance(generatorPoints.cbegin(), pointIt);
+    }; 
     
     ECPoint pInverse;
     pInverse.x = p.x;
@@ -487,13 +537,25 @@ ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, cons
     /*slope*/
     
     ECPoint newPoint;
-    
-    int_fast64_t s = PositiveMod(getPower(p.y ^ q.y) - getPower(p.x ^ q.x), curve.p);
-    int_fast64_t sNum = generatorPoints.at(s);
-    int_fast64_t sSquareNum = generatorPoints.at((s * 2) % curve.p);
-    
+
+    int_fast64_t pySum = p.y ^ q.y;
+    int_fast64_t sNum = 0;
+    int_fast64_t sSquareNum = 0;
+
+    int_fast64_t s = PositiveMod(getPower(pySum) - getPower(p.x ^ q.x), curve.p);
+    if (pySum)
+    {
+        sNum = generatorPoints.at(s);
+        sSquareNum = generatorPoints.at((s * 2) % curve.p);
+    }
+
     int_fast64_t xr = sSquareNum ^ sNum ^ p.x ^ q.x ^ curve.a;
-    int_fast64_t yr = generatorPoints.at((s + getPower(p.x ^ xr)) % curve.p) ^ xr ^ p.y;
+    int_fast64_t pxXrSumNum = p.x ^ xr;
+    int_fast64_t sMultPxXrSumNum = 0;
+    if (sNum && pxXrSumNum)
+        sMultPxXrSumNum = generatorPoints.at((s + getPower(pxXrSumNum)) % curve.p);
+        
+    int_fast64_t yr = sMultPxXrSumNum ^ xr ^ p.y;
 
     newPoint.x = xr;
     newPoint.y = yr;
@@ -544,3 +606,17 @@ RsaPrivateKey RsaDerivePrivateKey(const RsaPublicKey &pubKey, std::string *steps
 
     return privKey;
 }
+ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, uint_fast64_t scalar, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps)
+{
+    ECPoint newPoint = p;
+
+    for (uint_fast64_t i = 1; i < scalar; i++)
+    {
+        newPoint = ECSumGF2N(curve, newPoint, p, generatorPoints, steps);
+        
+        if (steps && i + 1 != scalar)
+            *steps =+ "\n";
+    }
+    return newPoint;
+}
+
