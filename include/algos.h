@@ -106,13 +106,13 @@ ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, cons
 struct RsaPublicKey 
 {
     int_fast64_t n; // Module
-    int_fast64_t e; // Decryption exponent
+    int_fast64_t e; // Encryption exponent
 };
 
 struct RsaPrivateKey
 {
     int_fast64_t n; // Module
-    int_fast64_t d; // Encryption exponent
+    int_fast64_t d; // Decryption exponent
 };
 
 /* Encrypt message with public key. */
