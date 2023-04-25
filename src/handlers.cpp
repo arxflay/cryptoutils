@@ -209,8 +209,8 @@ static inline int HandleEcGF2N(int argc, const char **argv)
     auto getGenPoints = [](const std::vector<uint_fast64_t> &elements, std::string_view str) -> uint_fast64_t {
         if (str.size() == 1)
             return 0;
-        
-        return (memcmp(str.data(), "g^", std::min(str.size(), 2UL)) == 0) ? elements.at(atol(str.data() + 2)) : 0; 
+
+        return (memcmp(str.data(), "g^", std::min(str.size(), static_cast<size_t>(2))) == 0) ? elements.at(atol(str.data() + 2)) : 0; 
     };
 
     auto getPower = [](const std::vector<uint_fast64_t> &generatorPoints, uint_fast64_t num){
