@@ -103,4 +103,25 @@ ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::str
 bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
 ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
 ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
+
+struct RsaPublicKey 
+{
+    int_fast64_t n; // Module
+    int_fast64_t e; // Encryption exponent
+};
+
+struct RsaPrivateKey
+{
+    int_fast64_t n; // Module
+    int_fast64_t d; // Decryption exponent
+};
+
+/* Encrypt message with public key. */
+int_fast64_t RsaEncrypt(const RsaPublicKey &pubKey, int_fast64_t message, std::string *steps = nullptr);
+
+/* Decrypt message with private key. */
+int_fast64_t RsaDecrypt(const RsaPrivateKey &privKey, int_fast64_t message, std::string *steps = nullptr);
+
+/* Derive private key from public key. */
+RsaPrivateKey RsaDerivePrivateKey(const RsaPublicKey &pubKey, std::string *steps = nullptr);
 ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, uint_fast64_t scalar, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);

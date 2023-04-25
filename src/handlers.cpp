@@ -479,6 +479,77 @@ int HandleIsGenerator(int argc, const char **argv)
     return 0;
 }
 
+int HandleRsa(int argc, const char **argv)
+{
+    static const std::array<std::string_view, 3> commands{ "enc", "dec", "derivePrivKey" };
+    std::string_view desired(argc < 1 ? "" : argv[0]);
+    
+    auto containsCommand = [desired](std::string_view command){ return desired.compare(command) == 0; };
+    decltype(commands)::const_iterator it;
+
+    if (argc < 1 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
+    {
+        fmt::print("enter enc/dec/derivePrivKey\n");
+        return -1;
+    } 
+
+    ptrdiff_t cmdIndex = std::distance(commands.cbegin(), it);
+    std::string beginMessage(fmt::format("enter {} ", desired));
+    std::string steps;
+    
+    if (cmdIndex == 0)
+    {
+        if (argc < 4)
+        {
+            fmt::print("{} message n e\n", beginMessage);
+            return -1;
+        }
+        
+        RsaPublicKey pubKey;
+        pubKey.n = atol(argv[2]);
+        pubKey.e = atol(argv[3]);
+
+        uint_fast64_t message = atol(argv[1]);
+
+        uint_fast64_t encrypted = RsaEncrypt(pubKey, message, &steps);
+        fmt::print("{}\nEncrypted message = {}\n", steps, encrypted);
+    }
+    else if (cmdIndex == 1)
+    {
+        if (argc < 4)
+        {
+            fmt::print("{} encryptedMessage n d\n", beginMessage);
+            return -1;
+        }
+
+        RsaPrivateKey privKey;
+        privKey.n = atol(argv[2]);
+        privKey.d = atol(argv[3]);        
+
+        uint_fast64_t encryptedMessage = atol(argv[1]);
+
+        uint_fast64_t decrypted = RsaDecrypt(privKey, encryptedMessage, &steps);
+        fmt::print("{}\nDecrypted message = {}\n", steps, decrypted);
+    }
+    else if (cmdIndex == 2) 
+    {
+        if (argc < 3)
+        {
+            fmt::print("{} n e\n", beginMessage);
+            return -1;
+        }
+
+        RsaPublicKey pubKey;
+        pubKey.n = atol(argv[1]);
+        pubKey.e = atol(argv[2]);
+
+        RsaPrivateKey privKey = RsaDerivePrivateKey(pubKey, &steps);
+        fmt::print("{}\nPrivate key = {}\n", steps, privKey.d);
+    }
+
+    return 0;
+}
+
 const std::map<std::string_view, UtilHandler> &GetUtilHandlers()
 {
     static std::map<std::string_view, UtilHandler> handlers = {
@@ -489,7 +560,8 @@ const std::map<std::string_view, UtilHandler> &GetUtilHandlers()
         { "lhperalt", &HandleLhPeralt},
         { "elgamal" , &HandleElGamal },
         { "ec"     , &HandleEc },
-        { "isgenerator", &HandleIsGenerator }
+        { "isgenerator", &HandleIsGenerator },
+        { "rsa", &HandleRsa }
     };
 
     return handlers;
