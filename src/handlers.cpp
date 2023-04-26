@@ -481,7 +481,7 @@ int HandleIsGenerator(int argc, const char **argv)
 
 int HandleRsa(int argc, const char **argv)
 {
-    static const std::array<std::string_view, 3> commands{ "enc", "dec", "derivePrivKey" };
+    static const std::array<std::string_view, 5> commands{ "enc", "dec", "derivePrivKeyFromMod", "deriveKeysFromPubExp", "deriveKeysFromPrivExp" };
     std::string_view desired(argc < 1 ? "" : argv[0]);
     
     auto containsCommand = [desired](std::string_view command){ return desired.compare(command) == 0; };
@@ -489,7 +489,7 @@ int HandleRsa(int argc, const char **argv)
 
     if (argc < 1 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("enter enc/dec/derivePrivKey\n");
+        fmt::print("enter enc/dec/derivePrivKeyFromMod/deriveKeysFromPubExp/deriveKeysFromPrivExp\n");
         return -1;
     } 
 
@@ -543,8 +543,44 @@ int HandleRsa(int argc, const char **argv)
         pubKey.n = atol(argv[1]);
         pubKey.e = atol(argv[2]);
 
-        RsaPrivateKey privKey = RsaDerivePrivateKey(pubKey, &steps);
-        fmt::print("{}\nPrivate key = {}\n", steps, privKey.d);
+        RsaPrivateKey privKey = RsaDerivePrivateKeyFromModule(pubKey, &steps);
+        fmt::print("{}\nPrivate key: (n, d) = ({}, {})\n", steps, privKey.n, privKey.d);
+    }
+    else if (cmdIndex == 3) 
+    {
+        if (argc < 4)
+        {
+            fmt::print("{} p q e\n", beginMessage);
+            return -1;
+        }
+
+        uint_fast64_t p = atol(argv[1]);
+        uint_fast64_t q = atol(argv[2]);
+        uint_fast64_t e = atol(argv[3]);
+
+        auto keys = RsaDeriveKeysFromPublicExponent(p, q, e, &steps); 
+        RsaPrivateKey privKey = std::get<0>(keys);
+        RsaPublicKey pubKey = std::get<1>(keys);
+
+        fmt::print("{}\nPrivate key: (n, d) = ({}, {})\nPublic key: (n, e) = ({}, {})\n", steps, privKey.n, privKey.d, pubKey.n, pubKey.e);
+    }
+    else if (cmdIndex == 4) 
+    {
+        if (argc < 4)
+        {
+            fmt::print("{} p q d\n", beginMessage);
+            return -1;
+        }
+
+        uint_fast64_t p = atol(argv[1]);
+        uint_fast64_t q = atol(argv[2]);
+        uint_fast64_t d = atol(argv[3]);
+
+        auto keys = RsaDeriveKeysFromPrivateExponent(p, q, d, &steps); 
+        RsaPrivateKey privKey = std::get<0>(keys);
+        RsaPublicKey pubKey = std::get<1>(keys);
+
+        fmt::print("{}\nPrivate key: (n, d) = ({}, {})\nPublic key: (n, e) = ({}, {})\n", steps, privKey.n, privKey.d, pubKey.n, pubKey.e);
     }
 
     return 0;
