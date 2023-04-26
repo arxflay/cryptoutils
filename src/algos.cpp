@@ -583,7 +583,7 @@ int_fast64_t RsaDecrypt(const RsaPrivateKey &privKey, int_fast64_t message, std:
     return decrypted;
 }
 
-RsaPrivateKey RsaDerivePrivateKey(const RsaPublicKey &pubKey, std::string *steps)
+RsaPrivateKey RsaDerivePrivateKeyFromModule(const RsaPublicKey &pubKey, std::string *steps)
 {
     RsaPrivateKey privKey;
     privKey.n = pubKey.n;
@@ -606,6 +606,57 @@ RsaPrivateKey RsaDerivePrivateKey(const RsaPublicKey &pubKey, std::string *steps
 
     return privKey;
 }
+
+std::tuple<RsaPrivateKey, RsaPublicKey> RsaDeriveKeysFromPublicExponent(int_fast64_t p, int_fast64_t q, int_fast64_t e, std::string *steps) 
+{
+    RsaPrivateKey privateKey;
+    RsaPublicKey publicKey;
+
+    int_fast64_t n = p * q;
+    int_fast64_t phi = (p - 1) * (q - 1);
+
+    privateKey.n = n;
+    privateKey.d = InverseMod(e, phi);
+
+    publicKey.n = n;
+    publicKey.e = e;
+
+    if (steps)
+    {
+        *steps += fmt::format("p = {}\n", p);
+        *steps += fmt::format("q = {}\n", q);
+        *steps += fmt::format("phi = (p - 1) * (q - 1) = {} * {} = {}\n", p - 1, q - 1, phi);        
+        *steps += fmt::format("d = {}^-1 mod {} = {}\n", e, phi, privateKey.d);
+    }
+
+    return std::make_tuple(privateKey, publicKey);
+}
+
+std::tuple<RsaPrivateKey, RsaPublicKey> RsaDeriveKeysFromPrivateExponent(int_fast64_t p, int_fast64_t q, int_fast64_t d, std::string *steps) 
+{
+    RsaPrivateKey privateKey;
+    RsaPublicKey publicKey;
+
+    int_fast64_t n = p * q;
+    int_fast64_t phi = (p - 1) * (q - 1);
+
+    privateKey.n = n;
+    privateKey.d = d;
+
+    publicKey.n = n;
+    publicKey.e = InverseMod(d, phi);
+    
+    if (steps)
+    {
+        *steps += fmt::format("p = {}\n", p);
+        *steps += fmt::format("q = {}\n", q);
+        *steps += fmt::format("phi = (p - 1) * (q - 1) = {} * {} = {}\n", p - 1, q - 1, phi);        
+        *steps += fmt::format("e = {}^-1 mod {} = {}\n", d, phi, publicKey.e);
+    }
+
+    return std::make_tuple(privateKey, publicKey);
+}
+
 ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, uint_fast64_t scalar, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps)
 {
     ECPoint newPoint = p;
