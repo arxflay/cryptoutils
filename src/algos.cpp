@@ -671,3 +671,85 @@ ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, uint_fast64_t sca
     return newPoint;
 }
 
+ShamirSubject DoLagrangeInterpolation(const ShamirParameters &paramaters, int_fast64_t x, std::string *steps = nullptr)
+{
+    x = PositiveMod(x, paramaters.p);
+    int_fast64_t outY = 0;
+
+    int counter = 0;
+
+    const std::vector<ShamirSubject> &subjects = paramaters.subjects;
+    for (auto mainIt = subjects.begin(); mainIt != subjects.end(); mainIt++)
+    {
+        const ShamirSubject &iSubject = *mainIt;
+
+        int_fast64_t numerator = 1;
+        int_fast64_t denominator = 1;
+
+        for (auto secondaryIt = subjects.begin(); secondaryIt != subjects.end(); secondaryIt++)
+        {
+            if (secondaryIt == mainIt)
+                continue;
+
+            const ShamirSubject &jSubject = *secondaryIt;
+            numerator *= (x - jSubject.x);
+            denominator *= (iSubject.x - jSubject.x);
+
+            numerator %= paramaters.p;
+            denominator %= paramaters.p;
+            
+            if (denominator == 0)
+                throw std::runtime_error(fmt::format("{} - {} = 0, denominator equals zero", iSubject.x, jSubject.x));
+        }
+
+        if (steps)
+            *steps += fmt::format("c{} = {} * {}^(-1) = ", counter, numerator, denominator);
+
+        if(denominator < 0)
+        {
+            denominator *= -1;
+            numerator *= -1;
+        }
+
+        denominator = InverseMod(denominator, paramaters.p);
+        int_fast64_t ci = (numerator * denominator);
+        int_fast64_t yici = (iSubject.y * ci);
+        outY += yici;
+
+        if (steps)
+        {
+            *steps += fmt::format("{} * {} = {}\n", numerator, denominator, ci);
+            *steps += fmt::format("y{}*c{} = {} * {} = {}\n", counter, counter, iSubject.y, ci, yici);
+        }
+        counter++;
+    }
+
+    return ShamirSubject{ x, PositiveMod(outY, paramaters.p) };
+}
+
+std::vector<ShamirSubject> GetShamirSubjects(const ShamirParameters &paramaters, std::string *steps)
+{
+    std::vector<ShamirSubject> out;
+    const std::vector<ShamirSubject> &subjects = paramaters.subjects;
+    for (int_fast64_t i = 1; i < paramaters.p; i++)
+    {
+        if (steps)
+            *steps += fmt::format("x = {}\n", i);
+
+        auto it = std::find_if(subjects.begin(), subjects.end(), [&subjects, i](const ShamirSubject &subject) { return subject.x == i; });
+        if (it != subjects.end())
+        {
+            out.push_back(*it);
+            continue;
+        }
+
+        out.push_back(DoLagrangeInterpolation(paramaters, i, steps));
+    }
+
+    return out;
+}
+
+ShamirSubject DoShamirReconstruction(const ShamirParameters &paramaters, std::string *steps)
+{
+    return DoLagrangeInterpolation(paramaters, 0, steps);
+}

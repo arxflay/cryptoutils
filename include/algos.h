@@ -132,3 +132,19 @@ std::tuple<RsaPrivateKey, RsaPublicKey> RsaDeriveKeysFromPublicExponent(int_fast
 std::tuple<RsaPrivateKey, RsaPublicKey> RsaDeriveKeysFromPrivateExponent(int_fast64_t p, int_fast64_t q, int_fast64_t d, std::string *steps = nullptr);
 
 ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, uint_fast64_t scalar, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
+
+struct ShamirSubject
+{
+    int_fast64_t x;
+    int_fast64_t y;
+};
+
+struct ShamirParameters
+{
+    std::vector<ShamirSubject> subjects;
+    int_fast64_t p;
+};
+
+std::vector<ShamirSubject> GetShamirSubjects(const ShamirParameters &paramaters, std::string *steps = nullptr);
+ShamirSubject DoShamirReconstruction(const ShamirParameters &paramaters, std::string *steps = nullptr);
+

@@ -8,6 +8,7 @@
 #include <functional>
 #include <cstring>
 #include <cmath>
+#include <random>
 #include <fmt/core.h>
 
 
@@ -586,6 +587,135 @@ int HandleRsa(int argc, const char **argv)
     return 0;
 }
 
+int HandleShamirProtocol(int argc, const char **argv)
+{
+    static const std::array<std::string_view, 2> commands{ "getSubjects", "reconstruction" };
+    std::string_view desired(argc < 1 ? "" : argv[0]);
+    
+    auto containsCommand = [desired](std::string_view command){ return desired.compare(command) == 0; };
+    decltype(commands)::const_iterator it;
+
+    if (argc < 1 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
+    {
+        fmt::print("enter getSubjects/reconstruction\n");
+        return -1;
+    } 
+
+    ptrdiff_t cmdIndex = std::distance(commands.cbegin(), it);
+    std::string beginMessage(fmt::format("enter {} ", desired));
+    std::string steps;
+
+    if (cmdIndex == 0)
+    {
+        if (argc < 5)
+        {
+            fmt::print("{}p K N S x y...\n", beginMessage);
+            return -1;
+        }
+
+        ShamirParameters parameters;
+        parameters.p = atol(argv[1]);
+        int_fast64_t k = atol(argv[2]);
+
+        if (k <= 1)
+        {
+            fmt::print("K has invalid value, {} <= 1\n", k);
+            return -1;
+        }
+
+        int_fast64_t expectedArgc = (k - 1) * 2 + 5;
+        
+        if (argc != expectedArgc)
+        {
+            if (argc < expectedArgc)
+                fmt::print("Invalid amount of x y points or point is incomplete\n");
+            else
+                fmt::print("too many args\n");
+
+            fmt::print("expectedArgc {} but was {}\n", expectedArgc, argc);
+            return -1;
+        }
+        
+        int_fast64_t n = atol(argv[3]);
+        if (n > parameters.p)
+        {
+            fmt::print("Amount of needed subjects N is highier than p, {} > {}\n", n, parameters.p);
+            return -1;
+        }
+
+        int_fast64_t s = atol(argv[4]);
+        
+        parameters.subjects.push_back(ShamirSubject{ 0, s });
+
+        for (int_fast64_t i = 5; i < argc; i += 2)
+            parameters.subjects.push_back(ShamirSubject{ atol(argv[i]), atol(argv[i + 1]) });
+
+        std::vector<ShamirSubject> subjects = GetShamirSubjects(parameters);
+
+        fmt::print("List of all points: ");
+        for (const ShamirSubject &subj : subjects)
+            fmt::print("({}, {}) ", subj.x, subj.y);
+        fmt::print("\n");
+        fmt::print("Picking {} random points from list...\n", n);
+
+        std::vector<int_fast64_t> subjectsIndicies(subjects.size());
+        std::iota(subjectsIndicies.begin(), subjectsIndicies.end(), 0);
+        std::mt19937 generator(std::random_device{}());
+        std::shuffle(subjectsIndicies.begin(), subjectsIndicies.end(), generator);
+
+        fmt::print("Result: ");
+        for (int_fast64_t i = 0; i < n; i++)
+        {
+            ShamirSubject &subject = subjects.at(subjectsIndicies[i]);
+            fmt::print("({}, {}) ", subject.x, subject.y);
+        }
+
+        fmt::print("\n");
+        
+
+    }
+    else if (cmdIndex == 1)
+    {
+        if (argc < 3)
+        {
+            fmt::print("{}p K x y...\n", beginMessage);
+            return -1;
+        }
+
+        ShamirParameters parameters;
+        parameters.p = atol(argv[1]);
+        int_fast64_t k = atol(argv[2]);
+
+        if (k <= 1)
+        {
+            fmt::print("K has invalid value, {} <= 1\n", k);
+            return -1;
+        }
+
+        int_fast64_t expectedArgc = (k * 2) + 3;
+        
+        if (argc != expectedArgc)
+        {
+            if (argc < expectedArgc)
+                fmt::print("Invalid amount of x y points or point is incomplete\n");
+            else
+                fmt::print("too many args\n");
+
+            fmt::print("expectedArgc {} but was {}\n", expectedArgc, argc);
+            return -1;
+        }
+
+        for (int_fast64_t i = 3; i < argc; i += 2)
+            parameters.subjects.push_back(ShamirSubject{ atol(argv[i]), atol(argv[i + 1]) });
+        
+        ShamirSubject subject = DoShamirReconstruction(parameters, &steps);
+        fmt::print("{}", steps);
+        fmt::print("S = ({}, {})\n", subject.x, subject.y);
+    }
+
+    return 0;
+}
+
 const std::map<std::string_view, UtilHandler> &GetUtilHandlers()
 {
     static std::map<std::string_view, UtilHandler> handlers = {
@@ -597,7 +727,8 @@ const std::map<std::string_view, UtilHandler> &GetUtilHandlers()
         { "elgamal" , &HandleElGamal },
         { "ec"     , &HandleEc },
         { "isgenerator", &HandleIsGenerator },
-        { "rsa", &HandleRsa }
+        { "rsa", &HandleRsa },
+        { "shamir_protocol", &HandleShamirProtocol }
     };
 
     return handlers;
