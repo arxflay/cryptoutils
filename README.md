@@ -1,18 +1,25 @@
 
 **Documentation of usage of the program**
 
-# ec - Elyptic Curve
+# ec - Eliptic Curve
 
 ## "GF(p)"
     sum
-        curve_a curve_b curve_prime x0 y0 x1 y1
-        Example: 
-            TODO
+        curve_a curve_b curve_prime x0 y0 x1 y1        
+            Example: 
+                EC1: y^2 = x^3 + 13x + 21 mod 41
+                P1: (x1, y1) = (26, 31)
+                Q1: (x2, y2) = (3, 28)
+                y = x^n + ax + b
+                    *"GF(p)" sum 13 21 41 26 31 3 28*
 
     alignson
         curve_a curve_b curve_prime x y
-        Example: 
-            TODO
+            Example: 
+                EC1: y^2 = x^3 + 13x + 21 mod 41
+                P1: (x1, y1) = (26, 31)
+                y = x^n + ax + b
+                    *"GF(p)" alignson 13 21 41 26 31*
 
 ## "GF(2^n)"
     sum
@@ -66,12 +73,13 @@
 ## "GF(p)"
         p numbers...
         Example:
-            TODO
+            isgenerator "GF(p)" 7 3
 
 ## "GF(2^n)"
         ireduciblePolynomial(binary) n polynomials(binary)...
+        x^3 + x + 1 = 1011
         Example:
-            TODO
+            isgenerator "GF(2^n)" 1011 3 010
             
 # lhperalt - Lehman Peralt Primality Test
 
