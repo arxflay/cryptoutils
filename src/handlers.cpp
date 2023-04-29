@@ -10,6 +10,7 @@
 #include <cmath>
 #include <random>
 #include <fmt/core.h>
+#include <numeric>
 
 
 int HandleExtgcd(int argc, const char **argv)
