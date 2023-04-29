@@ -59,7 +59,7 @@
     number
     Example:
         Number 442931 is a module in the RSA algorithm. Find the decomposition into prime factors by Fermat by the method.
-            **fermant 442931**
+            *fermant 442931*
 
 # isgenerator - Is Generator
 
