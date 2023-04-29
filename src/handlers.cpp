@@ -445,7 +445,7 @@ int HandleIsGenerator(int argc, const char **argv)
     {
         if (argc < 3)
         {
-            fmt::print("{} p numbers...");
+            fmt::print("{} p numbers...", beginMessage);
             return -1;
         }
 
