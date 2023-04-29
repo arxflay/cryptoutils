@@ -7,23 +7,28 @@
         curve_a curve_b curve_prime x0 y0 x1 y1
         Example: 
             TODO
+
     alignson
         curve_a curve_b curve_prime x y
         Example: 
             TODO
+
 "GF(2^n)"
     sum
         curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 x1_g^p/0 y1_g^p/0
         Example:     
-            TODO              
+            TODO     
+
     multiply
         curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 scalar
         Example:
             TODO
+
     alignson
         curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0
         Example:
             TODO
+            
 
 # elgamal - El Gamal
 enc
