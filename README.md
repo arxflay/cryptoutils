@@ -1,7 +1,7 @@
 
 **Documentation of usage of the program**
 
-# ec - Eliptic Curve
+# ec - Elliptic Curve
 
 ## "GF(p)"
     sum
