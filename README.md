@@ -11,7 +11,7 @@
             EC: y^2 = x^3 + 13x + 21 mod 41
             P: (x1, y1) = (26, 31)
             Q: (x2, y2) = (3, 28)
-                *"ec GF(p)" sum 13 21 41 26 31 3 28*
+                *ec "GF(p)" sum 13 21 41 26 31 3 28*
 
     alignson
         curve_a curve_b curve_prime x y
@@ -19,7 +19,7 @@
             y = x^n + ax + b
             EC: y^2 = x^3 + 13x + 21 mod 41
             P: (x1, y1) = (26, 31)            
-                *"ec GF(p)" alignson 13 21 41 26 31*
+                *ec "GF(p)" alignson 13 21 41 26 31*
 
 ## "GF(2^n)"
     sum
@@ -29,7 +29,7 @@
             f(x) = x^3 + x + 1 = 1011 
             P1: (g^5, g^6)
             P2: (g^5, g^5)
-                *"ec GF(2^n)" sum g^3 g^2 010 1011 3 g^5 g^6 g^5 g^5*
+                *ec "GF(2^n)" sum g^3 g^2 010 1011 3 g^5 g^6 g^5 g^5*
 
     multiply
         curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 scalar
@@ -38,7 +38,7 @@
             f(x) = x^3 + x + 1 = 1011 
             P1: (g^5, g^6)
             Scalar: 4
-                *"ec GF(2^n)" alignson g^3 g^2 010 1011 3 g^5 g^6 4*
+                *ec "GF(2^n)" alignson g^3 g^2 010 1011 3 g^5 g^6 4*
 
     alignson
         curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0
@@ -46,13 +46,13 @@
             EC: y^2 + xy = x^3 + g^3*x^2 + g^2
             f(x) = x^3 + x + 1 = 1011              
             P1: (g^5, g^6)
-                *"ec GF(2^n)" alignson g^3 g^5 010 1011 3 g^5 g^6*
+                *ec "GF(2^n)" alignson g^3 g^5 010 1011 3 g^5 g^6*
             P2: (g^5, g^5)
-                *"ec GF(2^n)" alignson g^3 g^5 010 1011 3 g^5 g^5*
+                *ec "GF(2^n)" alignson g^3 g^5 010 1011 3 g^5 g^5*
             P3: (g^4, 1)
-                *"ec GF(2^n)" alignson g^3 g^5 010 1011 3 g^4 g^0*
+                *ec "GF(2^n)" alignson g^3 g^5 010 1011 3 g^4 g^0*
             P4: (g^5, g^0)
-                *"ec GF(2^n)" alignson g^3 g^5 010 1011 3 g^5 0*
+                *ec "GF(2^n)" alignson g^3 g^5 010 1011 3 g^5 0*
                 
 
 # elgamal - El Gamal
