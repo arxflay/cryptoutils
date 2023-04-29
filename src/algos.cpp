@@ -154,7 +154,7 @@ bool IsGeneratorGFP(uint_fast64_t generator, uint_fast64_t mod, std::string *ste
 
     for (size_t i = 2; i < (mod - 1); i++)
     {
-        number = (number * number) % mod;
+        number = (number * generator) % mod;
         if (steps)
             *steps += fmt::format("{}^{} = {}\n", generator, i, number);
 
@@ -420,7 +420,10 @@ ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::str
     if (p == q)
         return ECDouble(curve, p, steps);
     //s = slope
-    int_fast64_t s = ((p.y - q.y) * InverseMod(PositiveMod(p.x - q.x, curve.p), curve.p)) % curve.p;
+    int_fast64_t s = PositiveMod(((p.y - q.y) * InverseMod(PositiveMod(p.x - q.x, curve.p), curve.p)), curve.p);
+    if (s == 0)
+        throw std::runtime_error("s equals 0, result point is point at infinity, (0, 0)");
+
     ECPoint newPoint;
     
     newPoint.x = PositiveMod(((s * s) - p.x - q.x), curve.p);

@@ -15,6 +15,7 @@
 
 int HandleExtgcd(int argc, const char **argv)
 {
+    fmt::print("[Extended Euclidian Algorithm]\n");
     if (argc < 2)
     {
         fmt::print("Enter number prime\n");
@@ -34,6 +35,7 @@ int HandleExtgcd(int argc, const char **argv)
 
 int HandleModExp(int argc, const char **argv)
 {
+    fmt::print("[Fast Modular Exponention]\n");
     if (argc < 3)
     {
         fmt::print("Enter number power prime\n");
@@ -52,6 +54,7 @@ int HandleModExp(int argc, const char **argv)
 
 int HandleFermantFactorization(int argc, const char **argv)
 {
+    fmt::print("[Fermant Factorization]\n");
     if (argc < 1)
     {
         fmt::print("Enter number\n");
@@ -66,40 +69,58 @@ int HandleFermantFactorization(int argc, const char **argv)
 
 int HandleRhoFactorization(int argc, const char **argv)
 {
+    fmt::print("[Pollard Rho Factorization]\n");
     if (argc < 2)
     {
         fmt::print("Enter number seed\n");
         return -1;
     }
-
+    
+    fmt::print("<input>\n");
+    fmt::print("-> number = {}\n", argv[0]);
+    fmt::print("-> seed = {}\n", argv[1]);
     int_fast64_t number = std::atol(argv[0]);
     int_fast64_t seed = std::atol(argv[1]);
     std::string steps;
     auto [a, b] = DoRhoFactorization(number, seed, &steps);
-    fmt::print("{}\n{} = {} * {}\n", steps, number, a, b);
+    fmt::print("<steps>\n");
+    fmt::print("{}", steps);
+    fmt::print("<result>\n");
+    fmt::print("{} * {}\n", number, a, b);
 
     return 0;
 }
 
 int HandleLhPeralt(int argc, const char **argv)
 {
+    fmt::print("[Lehman Peralta Test]\n");
     if (argc < 2)
     {
         fmt::print("Enter examinedNumber numbers...\n");
         return -1;
     }
     
+    fmt::print("<input>\n");
     int_fast64_t examinedNumber = atol(argv[0]);
+    fmt::print("-> examinedNumber = {}\n", examinedNumber);
     
+    fmt::print("-> numbers = [");
     std::vector<int_fast64_t> numbers(static_cast<size_t>(argc - 1));
     for (size_t i = 0; i < numbers.size(); i++)
+    {
         numbers[i] = atol(argv[i + 1]);
-    
-    std::string steps;
+        if (i + 1 == numbers.size())
+            fmt::print("{}]\n", numbers[i]);
+        else
+            fmt::print("{}, ", numbers[i]);
+    }
 
+    std::string steps;
     LehmanPeraltResult result = LehmanPeralt(numbers, examinedNumber, &steps); 
 
-    fmt::print("{}\n",steps);
+    fmt::print("<steps>\n");
+    fmt::print("{}", steps);
+    fmt::print("<result>\n");
     if (result.flags & LehmanPeraltFlags::NOT_PRIME)
         fmt::print("Number is composite, not prime\n");
     else
@@ -113,6 +134,7 @@ int HandleLhPeralt(int argc, const char **argv)
 
 int HandleElGamal(int argc, const char **argv)
 {
+    fmt::print("[El Gamal]\n");
     static const std::array<std::string_view, 3> commands{ "enc", "dec", "derivePubKey" };
     std::string_view desired(argc < 1 ? "" : argv[0]);
     
@@ -371,10 +393,15 @@ static inline int HandleEcGFP(int argc, const char **argv)
         ECPoint q;
         q.x = atol(argv[7]);
         q.y = atol(argv[8]);
-
-        ECPoint r = ECSum(curve, p, q, &steps);
-
-        fmt::print("{}\nEC sum = ({},{})\n", steps, r.x, r.y);
+        try
+        {
+            ECPoint r = ECSum(curve, p, q, &steps);
+            fmt::print("{}\nEC sum = ({},{})\n", steps, r.x, r.y);
+        }
+        catch (const std::runtime_error &e)
+        {
+            fmt::print("{}\n", e.what());
+        }
     }
     else if (cmdIndex == 1)
     {
@@ -400,7 +427,8 @@ static inline int HandleEcGFP(int argc, const char **argv)
 }
 
 int HandleEc(int argc, const char **argv)
-{   
+{
+    fmt::print("[EC]\n");
     static const std::array<std::string_view, 2> commands{ "GF(p)", "GF(2^n)" };
     std::string_view desired(argc < 1 ? "" : argv[0]);
     
@@ -425,6 +453,7 @@ int HandleEc(int argc, const char **argv)
 
 int HandleIsGenerator(int argc, const char **argv)
 {
+    fmt::print("[Generator Tools]\n");
     static const std::array<std::string_view, 2> commands{ "GF(p)", "GF(2^n)" };
     std::string_view desired(argc < 1 ? "" : argv[0]);
     
@@ -445,7 +474,7 @@ int HandleIsGenerator(int argc, const char **argv)
     {
         if (argc < 3)
         {
-            fmt::print("{} p numbers...");
+            fmt::print("{}p numbers...", beginMessage);
             return -1;
         }
 
@@ -483,6 +512,7 @@ int HandleIsGenerator(int argc, const char **argv)
 
 int HandleRsa(int argc, const char **argv)
 {
+    fmt::print("[RSA Tools]\n");
     static const std::array<std::string_view, 5> commands{ "enc", "dec", "derivePrivKeyFromMod", "deriveKeysFromPubExp", "deriveKeysFromPrivExp" };
     std::string_view desired(argc < 1 ? "" : argv[0]);
     
@@ -590,6 +620,7 @@ int HandleRsa(int argc, const char **argv)
 
 int HandleShamirProtocol(int argc, const char **argv)
 {
+    fmt::print("[Shamir protocol tools]\n");
     static const std::array<std::string_view, 2> commands{ "getSubjects", "reconstruction" };
     std::string_view desired(argc < 1 ? "" : argv[0]);
     
@@ -650,8 +681,10 @@ int HandleShamirProtocol(int argc, const char **argv)
 
         for (int_fast64_t i = 5; i < argc; i += 2)
             parameters.subjects.push_back(ShamirSubject{ atol(argv[i]), atol(argv[i + 1]) });
+        std::string steps;
+        std::vector<ShamirSubject> subjects = GetShamirSubjects(parameters, &steps);
 
-        std::vector<ShamirSubject> subjects = GetShamirSubjects(parameters);
+        fmt::print("{}\n", steps);
 
         fmt::print("List of all points: ");
         for (const ShamirSubject &subj : subjects)
