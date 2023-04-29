@@ -2,6 +2,7 @@
 **Documentation of usage of the program**
 
 # ec - Elyptic Curve
+
 "GF(p)"
     sum
         curve_a curve_b curve_prime x0 y0 x1 y1
@@ -28,9 +29,10 @@
         curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0
         Example:
             TODO
-            
+
 
 # elgamal - El Gamal
+
 enc
     prime generator pubkey otherPartPrivKey(k) message 
     Example: 
@@ -47,17 +49,20 @@ dec
             *elgamal dec 157 141 211 17*
 
 # extgcd - Extended Greatest Common Devisor
+
     number prime
     Example:
         *extgcd 12 8*
 
 # fermant - Fermant Factorization
+
     number
     Example:
         Number 442931 is a module in the RSA algorithm. Find the decomposition into prime factors by Fermat by the method.
             **fermant 442931**
 
 # isgenerator - Is Generator
+
     "GF(p)"
         p numbers...
         Example:
@@ -69,21 +74,25 @@ dec
             TODO
             
 # lhperalt - Lehman Peralt Primality Test
+
     examinedNumber numbers...
     Example: 
         *lhperalt 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71*
 
 # modexp - Modular Exponentiation
+
     number power prime
     Example: 
         *modexp 2 3 5*
 
 # rhoalgo - Pollard Rho Algorithm
+
     number seed
     Example:
         *rhoalgo 442931 2*
 
 # rsa - RSA
+
     enc
         message n e
         Example:
@@ -117,6 +126,7 @@ dec
                 *rsa deriveKeysFromPrivExp 137 173 20903*
             
 # shamir_protocol - Shamir Protocol
+
     getSubjects
         p K N S x y...
         Example:
