@@ -38,7 +38,7 @@
             f(x) = x^3 + x + 1 = 1011 
             P1: (g^5, g^6)
             Scalar: 4
-                *ec "GF(2^n)" alignson g^3 g^2 010 1011 3 g^5 g^6 4*
+                *ec "GF(2^n)" multiply g^3 g^2 010 1011 3 g^5 g^6 4*
 
     alignson
         curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0
