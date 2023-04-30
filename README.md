@@ -72,7 +72,7 @@
         s = (c, d) = (157, 141)
             *elgamal dec 157 141 211 17*
 
-# extgcd - Extended Greatest Common Devisor
+# extgcd - Extended Greatest Common Divisor
 
     number prime
     Example:
