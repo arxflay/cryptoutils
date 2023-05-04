@@ -16,23 +16,23 @@ int_fast64_t GCD(int_fast64_t num, int_fast64_t mod);
 int_fast64_t ModExp(int_fast64_t num, int_fast64_t power, int_fast64_t mod);
 int_fast64_t Mod(int_fast64_t num, int_fast64_t mod);
 int_fast64_t PositiveMod(int_fast64_t num, int_fast64_t mod);
-uint_fast8_t GetMSB(uint_fast64_t num);
+int_fast64_t GetMSB(int_fast64_t num);
 
-uint_fast64_t MultiplyBinary(uint_fast64_t number, uint_fast64_t multiplicant);
-std::string ConvertNumberToBinary(uint_fast64_t number, uint_fast64_t minLen);
-uint_fast64_t ConvertBinaryToNumber(std::string_view binary);
+int_fast64_t MultiplyBinary(int_fast64_t number, int_fast64_t multiplicant);
+std::string ConvertNumberToBinary(int_fast64_t number, int_fast64_t minLen);
+int_fast64_t ConvertBinaryToNumber(std::string_view binary);
 
 struct GF2NGeneratorParameters
 {
-    uint_fast64_t polynomial;
-    uint_fast64_t ireduciblePolynomial;
-    uint_fast64_t n;
+    int_fast64_t polynomial;
+    int_fast64_t ireduciblePolynomial;
+    int_fast64_t n;
 };
 
-bool IsGeneratorGFP(uint_fast64_t generator, uint_fast64_t mod, std::string *steps = nullptr);
+bool IsGeneratorGFP(int_fast64_t generator, int_fast64_t mod, std::string *steps = nullptr);
 bool IsGeneratorGF2N(const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
 
-std::vector<uint_fast64_t> GetGF2NGeneratorElements(const GF2NGeneratorParameters &parameters);
+std::vector<int_fast64_t> GetGF2NGeneratorElements(const GF2NGeneratorParameters &parameters);
 /*Factorization methods */
 
 std::tuple<int_fast64_t, int_fast64_t> DoFermantFactorization(int_fast64_t number, std::string *steps = nullptr);
@@ -100,9 +100,14 @@ bool ECAlignsOn(const ECCurve &curve, const ECPoint &p);
 ECPoint ECDouble(const ECCurve &curve, const ECPoint &p, std::string *steps = nullptr);
 ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::string *steps = nullptr);
 
-bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
-ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
-ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
+bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<int_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
+ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<int_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
+ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<int_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
+ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, int_fast64_t scalar, const std::vector<int_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
+
+void ECPointToStrGF2N(const ECPoint &p, const std::vector<int_fast64_t> &generatorPoints, std::string &xStr, std::string &yStr);
+void ECCurveToStrGF2N(const ECCurve &curve, const std::vector<int_fast64_t> &generatorPoints, std::string &curveA, std::string &curveB);
+int_fast64_t ECPointGetPowerGF2N(const std::vector<int_fast64_t> &generatorPoints, int_fast64_t num);
 
 struct RsaPublicKey 
 {
@@ -130,8 +135,6 @@ std::tuple<RsaPrivateKey, RsaPublicKey> RsaDeriveKeysFromPublicExponent(int_fast
 
 /* Derive private and public key from p q d. */
 std::tuple<RsaPrivateKey, RsaPublicKey> RsaDeriveKeysFromPrivateExponent(int_fast64_t p, int_fast64_t q, int_fast64_t d, std::string *steps = nullptr);
-
-ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, uint_fast64_t scalar, const std::vector<uint_fast64_t> &generatorPoints, std::string *steps = nullptr);
 
 struct ShamirSubject
 {

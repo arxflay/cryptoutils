@@ -230,16 +230,11 @@ static inline int HandleEcGF2N(int argc, const char **argv)
     ptrdiff_t cmdIndex = std::distance(commands.cbegin(), it);
     std::string steps;
     
-    auto getGenPoints = [](const std::vector<uint_fast64_t> &elements, std::string_view str) -> uint_fast64_t {
+    auto getGenPoints = [](const std::vector<int_fast64_t> &elements, std::string_view str) -> int_fast64_t {
         if (str.size() == 1)
             return 0;
 
         return (memcmp(str.data(), "g^", std::min(str.size(), static_cast<size_t>(2))) == 0) ? elements.at(atol(str.data() + 2)) : 0; 
-    };
-
-    auto getPower = [](const std::vector<uint_fast64_t> &generatorPoints, uint_fast64_t num){
-        auto it = std::find(generatorPoints.begin(), generatorPoints.end(), num);
-        return std::distance(generatorPoints.begin(), std::find(generatorPoints.begin(), generatorPoints.end(), num));
     };
 
     if (cmdIndex == 0)
@@ -254,7 +249,7 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         generatorParameters.polynomial = ConvertBinaryToNumber(argv[4]);
         generatorParameters.ireduciblePolynomial = ConvertBinaryToNumber(argv[5]);
         generatorParameters.n = atol(argv[6]);
-        std::vector<uint_fast64_t> generatorPoints = GetGF2NGeneratorElements(generatorParameters);
+        std::vector<int_fast64_t> generatorPoints = GetGF2NGeneratorElements(generatorParameters);
         
         ECCurve curve;
         curve.a = getGenPoints(generatorPoints, argv[2]);
@@ -271,10 +266,15 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         
         try
         {
-            ECPoint newPoint = ECSumGF2N(curve, p, q, generatorPoints, &steps);
-            fmt::print("NewPoint = ({}, {})\n"
-                    , newPoint.x == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, newPoint.x))
-                    , newPoint.y == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, newPoint.y)));
+            ECPoint newPoint = ECSumGF2N(curve, p, q, generatorPoints, generatorParameters, &steps);
+            std::string xStr;
+            std::string yStr;
+            ECPointToStrGF2N(newPoint, generatorPoints, xStr, yStr);
+            
+            fmt::print("<steps>\n");
+            fmt::print("{}\n", steps);
+            fmt::print("<result>\n");
+            fmt::print("R = ({}, {})\n", xStr, yStr);
         }
         catch(const std::runtime_error &e)
         {
@@ -285,7 +285,7 @@ static inline int HandleEcGF2N(int argc, const char **argv)
     {
         if (argc < 10)
         {
-            fmt::print("Enter GF(2^n) sum curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 scalar\n");
+            fmt::print("Enter GF(2^n) multiply curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 scalar\n");
             return -1;
         }
 
@@ -293,7 +293,7 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         generatorParameters.polynomial = ConvertBinaryToNumber(argv[4]);
         generatorParameters.ireduciblePolynomial = ConvertBinaryToNumber(argv[5]);
         generatorParameters.n = atol(argv[6]);
-        std::vector<uint_fast64_t> generatorPoints = GetGF2NGeneratorElements(generatorParameters);
+        std::vector<int_fast64_t> generatorPoints = GetGF2NGeneratorElements(generatorParameters);
         
         ECCurve curve;
         curve.a = getGenPoints(generatorPoints, argv[2]);
@@ -304,14 +304,20 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         p.x = getGenPoints(generatorPoints, argv[7]);
         p.y = getGenPoints(generatorPoints, argv[8]);
 
-        uint_fast64_t scalar = atol(argv[9]);
+        int_fast64_t scalar = atol(argv[9]);
         
         try
         {
-            ECPoint newPoint = ECMultiplyGF2N(curve, p, scalar, generatorPoints, &steps);
-            fmt::print("NewPoint = ({}, {})\n"
-                    , newPoint.x == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, newPoint.x))
-                    , newPoint.y == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, newPoint.y)));
+            ECPoint newPoint = ECMultiplyGF2N(curve, p, scalar, generatorPoints, generatorParameters, &steps);
+            
+            std::string xStr;
+            std::string yStr;
+            ECPointToStrGF2N(newPoint, generatorPoints, xStr, yStr);
+            
+            fmt::print("<steps>\n");
+            fmt::print("{}\n", steps);
+            fmt::print("<result>\n");
+            fmt::print("R = ({}, {})\n", xStr, yStr);
         }
         catch(const std::runtime_error &e)
         {
@@ -331,7 +337,7 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         generatorParameters.polynomial = ConvertBinaryToNumber(argv[4]);
         generatorParameters.ireduciblePolynomial = ConvertBinaryToNumber(argv[5]);
         generatorParameters.n = atol(argv[6]);
-        std::vector<uint_fast64_t> generatorPoints = GetGF2NGeneratorElements(generatorParameters);
+        std::vector<int_fast64_t> generatorPoints = GetGF2NGeneratorElements(generatorParameters);
         
         ECCurve curve;
         curve.a = getGenPoints(generatorPoints, argv[2]);
@@ -341,15 +347,22 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         ECPoint p;
         p.x = getGenPoints(generatorPoints, argv[7]);
         p.y = getGenPoints(generatorPoints, argv[8]);
+        
+        std::string xStr;
+        std::string yStr;
+        ECPointToStrGF2N(p, generatorPoints, xStr, yStr);
 
-        fmt::print("Does point ({}, {}) aligns on curve y^2 + xy = x^3 + {}*x^2 + {}?\n"
-                , p.x == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, p.x))
-                , p.y == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, p.y))
-                , curve.a == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, curve.a))
-                , curve.b == 0 ? "0" : fmt::format("g^{}", getPower(generatorPoints, curve.b))
-        );
+        std::string aStr;
+        std::string bStr;
+        ECCurveToStrGF2N(curve, generatorPoints, aStr, bStr);
 
-        fmt::print("{}\n{}\n", steps, (ECAlignsOnGF2N(curve, p, generatorPoints, generatorParameters, &steps)) ? "Yes" : "No");
+        fmt::print("Does point ({}, {}) aligns on curve y^2 + xy = x^3 + {}*x^2 + {}?\n", xStr, yStr, aStr, bStr);
+        bool alignsOn = ECAlignsOnGF2N(curve, p, generatorPoints, generatorParameters, &steps);
+
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("{}\n", alignsOn ? "Yes, it does" : "No, it doesn't");
 
     }
 
@@ -478,12 +491,12 @@ int HandleIsGenerator(int argc, const char **argv)
             return -1;
         }
 
-        uint_fast64_t p = atol(argv[1]);
+        int_fast64_t p = atol(argv[1]);
 
         for (int i = 2; i < argc; i++)
         {
             fmt::print ("Is {} a generator?", argv[i]);
-            uint_fast64_t number = atol(argv[i]);
+            int_fast64_t number = atol(argv[i]);
             bool result = IsGeneratorGFP(number, p, &steps);
             fmt::print("{}\nnumber {} {}\n", steps, number, (result ? "is generator" : "is not generator"));
         }
@@ -541,9 +554,9 @@ int HandleRsa(int argc, const char **argv)
         pubKey.n = atol(argv[2]);
         pubKey.e = atol(argv[3]);
 
-        uint_fast64_t message = atol(argv[1]);
+        int_fast64_t message = atol(argv[1]);
 
-        uint_fast64_t encrypted = RsaEncrypt(pubKey, message, &steps);
+        int_fast64_t encrypted = RsaEncrypt(pubKey, message, &steps);
         fmt::print("{}\nEncrypted message = {}\n", steps, encrypted);
     }
     else if (cmdIndex == 1)
@@ -558,9 +571,9 @@ int HandleRsa(int argc, const char **argv)
         privKey.n = atol(argv[2]);
         privKey.d = atol(argv[3]);        
 
-        uint_fast64_t encryptedMessage = atol(argv[1]);
+        int_fast64_t encryptedMessage = atol(argv[1]);
 
-        uint_fast64_t decrypted = RsaDecrypt(privKey, encryptedMessage, &steps);
+        int_fast64_t decrypted = RsaDecrypt(privKey, encryptedMessage, &steps);
         fmt::print("{}\nDecrypted message = {}\n", steps, decrypted);
     }
     else if (cmdIndex == 2) 
@@ -586,9 +599,9 @@ int HandleRsa(int argc, const char **argv)
             return -1;
         }
 
-        uint_fast64_t p = atol(argv[1]);
-        uint_fast64_t q = atol(argv[2]);
-        uint_fast64_t e = atol(argv[3]);
+        int_fast64_t p = atol(argv[1]);
+        int_fast64_t q = atol(argv[2]);
+        int_fast64_t e = atol(argv[3]);
 
         auto keys = RsaDeriveKeysFromPublicExponent(p, q, e, &steps); 
         RsaPrivateKey privKey = std::get<0>(keys);
@@ -604,9 +617,9 @@ int HandleRsa(int argc, const char **argv)
             return -1;
         }
 
-        uint_fast64_t p = atol(argv[1]);
-        uint_fast64_t q = atol(argv[2]);
-        uint_fast64_t d = atol(argv[3]);
+        int_fast64_t p = atol(argv[1]);
+        int_fast64_t q = atol(argv[2]);
+        int_fast64_t d = atol(argv[3]);
 
         auto keys = RsaDeriveKeysFromPrivateExponent(p, q, d, &steps); 
         RsaPrivateKey privKey = std::get<0>(keys);
