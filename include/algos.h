@@ -148,6 +148,6 @@ struct ShamirParameters
     int_fast64_t p;
 };
 
-std::vector<ShamirSubject> GetShamirSubjects(const ShamirParameters &paramaters, std::string *steps = nullptr);
+std::vector<ShamirSubject> GetShamirSubjects(const ShamirParameters &paramaters, int_fast64_t n, std::string *steps = nullptr);
 ShamirSubject DoShamirReconstruction(const ShamirParameters &paramaters, std::string *steps = nullptr);
 

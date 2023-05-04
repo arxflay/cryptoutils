@@ -3,6 +3,7 @@
 #include <iostream>
 #include <array>
 #include <cmath>
+#include <numeric>
 #include <utility>
 #include <algorithm>
 #include <iostream>
@@ -858,36 +859,56 @@ ShamirSubject DoLagrangeInterpolation(const ShamirParameters &paramaters, int_fa
         denominator = InverseMod(denominator, paramaters.p);
         int_fast64_t ci = (numerator * denominator);
         int_fast64_t yici = (iSubject.y * ci);
-        outY += yici;
+        int_fast64_t ySum = outY + yici;
 
         if (steps)
         {
             *steps += fmt::format("{} * {} = {}\n", numerator, denominator, ci);
             *steps += fmt::format("y{}*c{} = {} * {} = {}\n", counter, counter, iSubject.y, ci, yici);
+            if (mainIt == subjects.begin())
+                *steps += fmt::format("y = {}\n\n", ySum);
+            else
+                *steps += fmt::format("y = {} + {} = {}\n\n", outY, yici, ySum);
         }
+
+        outY = ySum;
         counter++;
     }
+
+    int_fast64_t finalOutY = PositiveMod(outY, paramaters.p);
+    
+    if (steps)
+        *steps += fmt::format("y = {} mod {} = {}", outY, paramaters.p, finalOutY);   
 
     return ShamirSubject{ x, PositiveMod(outY, paramaters.p) };
 }
 
-std::vector<ShamirSubject> GetShamirSubjects(const ShamirParameters &paramaters, std::string *steps)
+std::vector<ShamirSubject> GetShamirSubjects(const ShamirParameters &paramaters, int_fast64_t n, std::string *steps)
 {
+    std::vector<int_fast64_t> subjectsIndicies(paramaters.p - 1);
+    std::iota(subjectsIndicies.begin(), subjectsIndicies.end(), 1);
+    std::mt19937 generator(std::random_device{}());
+    std::shuffle(subjectsIndicies.begin(), subjectsIndicies.end(), generator);
+
     std::vector<ShamirSubject> out;
     const std::vector<ShamirSubject> &subjects = paramaters.subjects;
-    for (int_fast64_t i = 1; i < paramaters.p; i++)
+    for (int_fast64_t i = 0; i < n; i++)
     {
-        if (steps)
-            *steps += fmt::format("x = {}\n", i);
+        int_fast64_t subjectX = subjectsIndicies.at(i);
 
-        auto it = std::find_if(subjects.begin(), subjects.end(), [&subjects, i](const ShamirSubject &subject) { return subject.x == i; });
+        auto it = std::find_if(subjects.begin(), subjects.end(), [&subjects, subjectX](const ShamirSubject &subject) { return subject.x == subjectX; });
         if (it != subjects.end())
         {
             out.push_back(*it);
             continue;
         }
 
-        out.push_back(DoLagrangeInterpolation(paramaters, i, steps));
+        if (steps)
+            *steps += fmt::format("<steps for x = {}>\n", subjectX);
+
+        out.push_back(DoLagrangeInterpolation(paramaters, subjectX, steps));
+        if (steps && i + 1 != n)
+            *steps += "\n\n";
     }
 
     return out;

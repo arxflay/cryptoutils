@@ -8,10 +8,7 @@
 #include <functional>
 #include <cstring>
 #include <cmath>
-#include <random>
 #include <fmt/core.h>
-#include <numeric>
-
 
 int HandleExtgcd(int argc, const char **argv)
 {
@@ -694,32 +691,18 @@ int HandleShamirProtocol(int argc, const char **argv)
 
         for (int_fast64_t i = 5; i < argc; i += 2)
             parameters.subjects.push_back(ShamirSubject{ atol(argv[i]), atol(argv[i + 1]) });
-        std::string steps;
-        std::vector<ShamirSubject> subjects = GetShamirSubjects(parameters, &steps);
-
-        fmt::print("{}\n", steps);
-
-        fmt::print("List of all points: ");
-        for (const ShamirSubject &subj : subjects)
-            fmt::print("({}, {}) ", subj.x, subj.y);
-        fmt::print("\n");
-        fmt::print("Picking {} random points from list...\n", n);
-
-        std::vector<int_fast64_t> subjectsIndicies(subjects.size());
-        std::iota(subjectsIndicies.begin(), subjectsIndicies.end(), 0);
-        std::mt19937 generator(std::random_device{}());
-        std::shuffle(subjectsIndicies.begin(), subjectsIndicies.end(), generator);
-
-        fmt::print("Result: ");
-        for (int_fast64_t i = 0; i < n; i++)
-        {
-            ShamirSubject &subject = subjects.at(subjectsIndicies[i]);
-            fmt::print("({}, {}) ", subject.x, subject.y);
-        }
-
-        fmt::print("\n");
         
+        std::string steps;
+        std::vector<ShamirSubject> subjects = GetShamirSubjects(parameters, n, &steps);
+        
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("N Subjects: ");
+        for (const ShamirSubject &subject : subjects)
+            fmt::print("({}, {}) ", subject.x, subject.y);
 
+        fmt::print("\n");
     }
     else if (cmdIndex == 1)
     {
@@ -756,8 +739,10 @@ int HandleShamirProtocol(int argc, const char **argv)
             parameters.subjects.push_back(ShamirSubject{ atol(argv[i]), atol(argv[i + 1]) });
         
         ShamirSubject subject = DoShamirReconstruction(parameters, &steps);
-        fmt::print("{}", steps);
-        fmt::print("S = ({}, {})\n", subject.x, subject.y);
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("S = {}\n", subject.y);
     }
 
     return 0;
