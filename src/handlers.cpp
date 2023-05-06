@@ -182,8 +182,13 @@ int HandleElGamal(int argc, const char **argv)
         int_fast64_t message = atol(argv[5]);
 
         ElGamalData encMessage = ElGamalEncrypt(pubKey, privKey, message, &steps);
-
-        fmt::print("{}:\nEncMsg ({}, {})\n", steps, encMessage.y, encMessage.encData);
+        
+        fmt::print("<steps>\n");
+        fmt::print("Warning: skip Public key step if it isn't explicitly required in exercise\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("Warning: skip Decipher Public key and Combined if it isn't explicitly required in exercise\n");
+        fmt::print("Decipher Public key = {}\nEncrypted message = {}\nCombined ({}, {})\n", encMessage.y, encMessage.encData, encMessage.y, encMessage.encData);
     }
     else if (cmdIndex == 1)
     {
@@ -202,7 +207,10 @@ int HandleElGamal(int argc, const char **argv)
         privKey.k = atol(argv[4]);
 
         int_fast64_t message = ElGamalDecrypt(data, privKey, &steps);
-        fmt::print("{}\ndecrypted message = {}\n", steps, message);
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("Decrypted message = {}\n", message);
     }
     else
     {
@@ -218,8 +226,11 @@ int HandleElGamal(int argc, const char **argv)
         privKey.k = atol(argv[3]);
 
         ElGamalPublicKey pubKey = ElGamalDerivePublicKey(privKey, &steps);
-
-        fmt::print("{}\npublic key ({}, {}, {})\n", steps, pubKey.p, pubKey.q, pubKey.y);
+        
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("Public key ({}, {}, {})\n", pubKey.p, pubKey.q, pubKey.y);
     }
 
     return 0;
@@ -229,13 +240,15 @@ static inline int HandleEcGF2N(int argc, const char **argv)
 {
     static const std::array<std::string_view, 3> commands{ "sum", "multiply", "alignson" };
     std::string_view desired(argc < 2 ? "" : argv[1]);
+    
+    std::string beginMessage = "Enter GF(2^n) ";
 
     auto containsCommand = [desired](std::string_view command){ return desired.compare(command) == 0; };
     decltype(commands)::const_iterator it;
 
     if (argc < 2 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("Enter GF(2^n) ");
+        fmt::print(beginMessage);
         for (size_t i = 0; i < commands.size(); i++)
         {
             if (i + 1 != commands.size())
@@ -258,11 +271,12 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         return (memcmp(str.data(), "g^", std::min(str.size(), static_cast<size_t>(2))) == 0) ? elements.at(atol(str.data() + 2)) : 0; 
     };
 
+    beginMessage = fmt::format("{}{} ", beginMessage, desired);
     if (cmdIndex == 0)
     {
         if (argc < 11)
         {
-            fmt::print("Enter GF(2^n) sum curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 x1_g^p/0 y1_g^p/0\n");
+            fmt::print("{}curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 x1_g^p/0 y1_g^p/0\n", beginMessage);
             return -1;
         }
 
@@ -299,6 +313,9 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         }
         catch(const std::runtime_error &e)
         {
+            fmt::print("<steps>\n");
+            fmt::print("{}\n", steps);
+            fmt::print("<result>\n");
             fmt::print("{}\n", e.what());
         }
     }
@@ -306,7 +323,7 @@ static inline int HandleEcGF2N(int argc, const char **argv)
     {
         if (argc < 10)
         {
-            fmt::print("Enter GF(2^n) multiply curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 scalar\n");
+            fmt::print("{}curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0 scalar\n", beginMessage);
             return -1;
         }
 
@@ -342,15 +359,15 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         }
         catch(const std::runtime_error &e)
         {
+            fmt::print("<result>\n");
             fmt::print("{}\n", e.what());
         }
-
     }
     else if (cmdIndex == 2)
     {
         if (argc < 9)
         {
-            fmt::print("Enter GF(2^n) alignson curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0\n");
+            fmt::print("{}curve_a_g^p/0 curve_b_g^p/0 polynomial(binary) ireduciblePolynomial(binary) n x0_g^p/0 y0_g^p/0\n", beginMessage);
             return -1;
         }
 
@@ -384,7 +401,6 @@ static inline int HandleEcGF2N(int argc, const char **argv)
         fmt::print("{}\n", steps);
         fmt::print("<result>\n");
         fmt::print("{}\n", alignsOn ? "Yes, it does" : "No, it doesn't");
-
     }
 
     return 0;
@@ -397,7 +413,8 @@ static inline int HandleEcGFP(int argc, const char **argv)
     
     auto containsCommand = [desired](std::string_view command){ return desired.compare(command) == 0; };
     decltype(commands)::const_iterator it;
-
+    
+    std::string beginMessage = "Enter GF(p) ";
     if (argc < 2 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
         fmt::print("Enter GF(p) ");
@@ -416,11 +433,12 @@ static inline int HandleEcGFP(int argc, const char **argv)
     ptrdiff_t cmdIndex = std::distance(commands.cbegin(), it);
     std::string steps;
 
+    beginMessage = fmt::format("{}{} ", beginMessage, desired);
     if (cmdIndex == 0)
     {
         if (argc < 9)
         {
-            fmt::print("Enter GF(p) sum curve_a curve_b curve_prime x0 y0 x1 y1\n");
+            fmt::print("{}curve_a curve_b curve_prime x0 y0 x1 y1\n", beginMessage);
             return -1;
         }
 
@@ -436,13 +454,20 @@ static inline int HandleEcGFP(int argc, const char **argv)
         ECPoint q;
         q.x = atol(argv[7]);
         q.y = atol(argv[8]);
+
         try
         {
             ECPoint r = ECSum(curve, p, q, &steps);
-            fmt::print("{}\nEC sum = ({},{})\n", steps, r.x, r.y);
+            fmt::print("<steps>\n");
+            fmt::print("{}\n", steps);
+            fmt::print("<result>\n");
+            fmt::print("R = ({},{})\n", steps, r.x, r.y);
         }
         catch (const std::runtime_error &e)
         {
+            fmt::print("<steps>\n");
+            fmt::print("{}\n", steps);
+            fmt::print("<result>\n");
             fmt::print("{}\n", e.what());
         }
     }
@@ -450,7 +475,7 @@ static inline int HandleEcGFP(int argc, const char **argv)
     {
         if (argc < 7)
         {
-            fmt::print("Enter GF(p) alignson curve_a curve_b curve_prime x y\n");
+            fmt::print("{}curve_a curve_b curve_prime x y\n", beginMessage);
             return -1;
         }
 
@@ -462,8 +487,13 @@ static inline int HandleEcGFP(int argc, const char **argv)
         ECPoint p;
         p.x = atol(argv[5]);
         p.y = atol(argv[6]);
+
         fmt::print("Does point ({}, {}) aligns on y^2 mod {} = x^3 + {}x + {} mod {}?\n", p.x, p.y, curve.p, curve.a, curve.b, curve.p);
-        fmt::print("{}\n", (ECAlignsOn(curve, p) ? "Yes" : "No"));
+        bool aligns = ECAlignsOn(curve, p, &steps);   
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("{}\n", aligns ? "Yes, it does" : "No, it doesn't");
     }
 
     return 0;
@@ -579,9 +609,10 @@ int HandleRsa(int argc, const char **argv)
     auto containsCommand = [desired](std::string_view command){ return desired.compare(command) == 0; };
     decltype(commands)::const_iterator it;
 
+    std::string beginMessage = "Enter ";
     if (argc < 1 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("Enter ");
+        fmt::print(beginMessage);
         for (size_t i = 0; i < commands.size(); i++)
         {
             if (i + 1 != commands.size())
@@ -592,16 +623,15 @@ int HandleRsa(int argc, const char **argv)
         fmt::print("\n");
         return -1;
     } 
-
     ptrdiff_t cmdIndex = std::distance(commands.cbegin(), it);
-    std::string beginMessage(fmt::format("enter {} ", desired));
     std::string steps;
     
+    beginMessage = fmt::format("{}{} ", beginMessage, desired);
     if (cmdIndex == 0)
     {
         if (argc < 4)
         {
-            fmt::print("{} message n e\n", beginMessage);
+            fmt::print("{}message n e\n", beginMessage);
             return -1;
         }
         
@@ -610,15 +640,18 @@ int HandleRsa(int argc, const char **argv)
         pubKey.e = atol(argv[3]);
 
         int_fast64_t message = atol(argv[1]);
-
         int_fast64_t encrypted = RsaEncrypt(pubKey, message, &steps);
-        fmt::print("{}\nEncrypted message = {}\n", steps, encrypted);
+        
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("Encrypted message = {}\n", encrypted);
     }
     else if (cmdIndex == 1)
     {
         if (argc < 4)
         {
-            fmt::print("{} encryptedMessage n d\n", beginMessage);
+            fmt::print("{}encryptedMessage n d\n", beginMessage);
             return -1;
         }
 
@@ -629,13 +662,17 @@ int HandleRsa(int argc, const char **argv)
         int_fast64_t encryptedMessage = atol(argv[1]);
 
         int_fast64_t decrypted = RsaDecrypt(privKey, encryptedMessage, &steps);
-        fmt::print("{}\nDecrypted message = {}\n", steps, decrypted);
+        
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("Decrypted message = {}\n", decrypted);
     }
     else if (cmdIndex == 2) 
     {
         if (argc < 3)
         {
-            fmt::print("{} n e\n", beginMessage);
+            fmt::print("{}n e\n", beginMessage);
             return -1;
         }
 
@@ -644,13 +681,17 @@ int HandleRsa(int argc, const char **argv)
         pubKey.e = atol(argv[2]);
 
         RsaPrivateKey privKey = RsaDerivePrivateKeyFromModule(pubKey, &steps);
-        fmt::print("{}\nPrivate key: (n, d) = ({}, {})\n", steps, privKey.n, privKey.d);
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("Private key: (n, d) = ({}, {})\n", privKey.n, privKey.d);
+
     }
     else if (cmdIndex == 3) 
     {
         if (argc < 4)
         {
-            fmt::print("{} p q e\n", beginMessage);
+            fmt::print("{}p q e\n", beginMessage);
             return -1;
         }
 
@@ -661,14 +702,17 @@ int HandleRsa(int argc, const char **argv)
         auto keys = RsaDeriveKeysFromPublicExponent(p, q, e, &steps); 
         RsaPrivateKey privKey = std::get<0>(keys);
         RsaPublicKey pubKey = std::get<1>(keys);
-
-        fmt::print("{}\nPrivate key: (n, d) = ({}, {})\nPublic key: (n, e) = ({}, {})\n", steps, privKey.n, privKey.d, pubKey.n, pubKey.e);
+        
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("Private key: (n, d) = ({}, {})\nPublic key: (n, e) = ({}, {})\n", privKey.n, privKey.d, pubKey.n, pubKey.e);
     }
     else if (cmdIndex == 4) 
     {
         if (argc < 4)
         {
-            fmt::print("{} p q d\n", beginMessage);
+            fmt::print("{}p q d\n", beginMessage);
             return -1;
         }
 
@@ -679,8 +723,11 @@ int HandleRsa(int argc, const char **argv)
         auto keys = RsaDeriveKeysFromPrivateExponent(p, q, d, &steps); 
         RsaPrivateKey privKey = std::get<0>(keys);
         RsaPublicKey pubKey = std::get<1>(keys);
-
-        fmt::print("{}\nPrivate key: (n, d) = ({}, {})\nPublic key: (n, e) = ({}, {})\n", steps, privKey.n, privKey.d, pubKey.n, pubKey.e);
+        
+        fmt::print("<steps>\n");
+        fmt::print("{}\n", steps);
+        fmt::print("<result>\n");
+        fmt::print("Private key: (n, d) = ({}, {})\nPublic key: (n, e) = ({}, {})\n", privKey.n, privKey.d, pubKey.n, pubKey.e);
     }
 
     return 0;

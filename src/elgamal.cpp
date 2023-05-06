@@ -13,7 +13,7 @@ ElGamalData ElGamalEncrypt(const ElGamalPublicKey &pubKey, const ElGamalPrivateK
     {
         std::string &str = *steps;
         str = fmt::format("sharedSecret = {} ^ {} mod {} = {}\n", pubKey.y, privKey.k, pubKey.p, sharedSecret);
-        str += fmt::format("y = {} ^ {} mod {} = {}\n", pubKey.q, privKey.k, pubKey.p, y);
+        str += fmt::format("Public key = {} ^ {} mod {} = {}\n", pubKey.q, privKey.k, pubKey.p, y);
         str += fmt::format("encryptedMsg = ({} * {}) mod {} = {}", message, sharedSecret, pubKey.p, encrypted);
     }
 

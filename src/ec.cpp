@@ -4,18 +4,36 @@
 #include "algos.h"
 #include <algorithm>
 #include <fmt/core.h>
+#include <string>
 
 /*GF(p) curves */
 
-bool ECAlignsOn(const ECCurve &curve, const ECPoint &p)
+bool ECAlignsOn(const ECCurve &curve, const ECPoint &p, std::string *steps)
 {
-    return (p.y * p.y) % curve.p == PositiveMod((p.x * p.x * p.x) + curve.a * p.x + curve.b, curve.p);
+    int_fast64_t pySquare = p.y * p.y;
+    int_fast64_t pxTriple = p.x * p.x * p.x;
+    int_fast64_t curveAMultX = curve.a * p.x;
+    int_fast64_t rightSum = pxTriple + curveAMultX + curve.b;
+    
+    int_fast64_t leftSide = pySquare % curve.p;
+    int_fast64_t rightSide = PositiveMod(rightSum, curve.p);
+
+    if (steps)
+    {
+        std::string &str = *steps;
+        str = fmt::format("{}^2 mod {} = (({}^3) + {}*{} + {}) mod {}\n", p.y, curve.p, p.x, curve.a, p.x, curve.b, curve.p);
+        str += fmt::format("{} mod {} = ({} + {} + {}) mod {}\n", pySquare, curve.p, pxTriple, curveAMultX, curve.b, curve.p);
+        str += fmt::format("{} mod {} = {} mod {}\n", pySquare, curve.p, rightSum, curve.p);
+        str += fmt::format("{} = {}", leftSide, rightSide);
+    }
+
+    return leftSide == rightSide;
 }
 
 ECPoint ECDouble(const ECCurve &curve, const ECPoint &p, std::string *steps)
 {
     if (p.y == 0)
-        throw std::invalid_argument("p.y must be highier than 0");
+        throw std::invalid_argument("y must be highier than 0");
 
     //s = slope
     
@@ -44,10 +62,14 @@ ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::str
     //s = slope
     int_fast64_t s = PositiveMod(((p.y - q.y) * InverseMod(PositiveMod(p.x - q.x, curve.p), curve.p)), curve.p);
     if (s == 0)
+    {
+        if (steps)
+            *steps = fmt::format("s = ({} - {}) * (({} - {})^-1) mod {} = {}\n", p.y, q.y, p.x, q.x, curve.p, s);
+        
         throw std::runtime_error("s equals 0, result point is point at infinity, (0, 0)");
+    }
 
     ECPoint newPoint;
-    
     newPoint.x = PositiveMod(((s * s) - p.x - q.x), curve.p);
 
     /* 
@@ -96,16 +118,18 @@ bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<in
         std::string curveAStr;
         std::string curveBStr;
         ECCurveToStrGF2N(curve, generatorPoints, curveAStr, curveBStr); 
+        
+        std::string &str = *steps;
 
-        *steps = fmt::format("({})^2 + {} * {} = ({})^3 + {} * ({})^2 + {}\n", yStr, xStr, yStr, xStr, curveAStr, xStr, curveBStr);
+        str = fmt::format("({})^2 + {} * {} = ({})^3 + {} * ({})^2 + {}\n", yStr, xStr, yStr, xStr, curveAStr, xStr, curveBStr);
 
-        *steps += fmt::format("{} + {} = {} + {} + {}\n"
+        str += fmt::format("{} + {} = {} + {} + {}\n"
                 , ConvertNumberToBinary(y2, parameters.n)
                 , ConvertNumberToBinary(xy, parameters.n)
                 , ConvertNumberToBinary(x3, parameters.n)
                 , ConvertNumberToBinary(x2, parameters.n)
                 , ConvertNumberToBinary(curve.b, parameters.n));
-        *steps += fmt::format("{} = {}", ConvertNumberToBinary(leftSide, parameters.n), ConvertNumberToBinary(rightSide, parameters.n));
+        str += fmt::format("{} = {}", ConvertNumberToBinary(leftSide, parameters.n), ConvertNumberToBinary(rightSide, parameters.n));
     }
     
     return leftSide == rightSide;
@@ -114,8 +138,8 @@ bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<in
 ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<int_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps)
 {
     if (p.x == 0)
-        throw std::runtime_error("2P = O, O = point at infinity");
-   
+        throw std::runtime_error("x equals 0, 2P = O, O = point at infinity");
+    
     ECPoint newPoint;
 
     int_fast64_t s = 0;
@@ -162,9 +186,11 @@ ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<i
         std::string newPointXStr;
         std::string newPointYStr;
         
+        std::string &str = *steps;
+
         ECPointToStrGF2N(newPoint, generatorPoints, newPointXStr, newPointYStr);
-        *steps = fmt::format("s = {} + ({} / {}) = {}\n", pxStr, pyStr, pxStr, sStr);
-        *steps += fmt::format("xr = {} + {} + {} = {} = {}\n"
+        str = fmt::format("s = {} + ({} / {}) = {}\n", pxStr, pyStr, pxStr, sStr);
+        str += fmt::format("xr = {} + {} + {} = {} = {}\n"
             , ConvertNumberToBinary(sNumSquare, parameters.n)
             , ConvertNumberToBinary(sNum, parameters.n)
             , ConvertNumberToBinary(curve.a, parameters.n)
@@ -172,19 +198,19 @@ ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<i
             , newPointXStr
         );
 
-        *steps += fmt::format("yr = ({})^2 + {} * ({} + 1) = "
+        str += fmt::format("yr = ({})^2 + {} * ({} + 1) = "
             , pxStr
             , newPointXStr
             , sStr
         );
 
-        *steps += fmt::format("{} + {} * {} = "
+        str += fmt::format("{} + {} * {} = "
             , ConvertNumberToBinary(xSquare, parameters.n)
             , newPointXStr
             , sOneSum ? fmt::format("g^{}", ECPointGetPowerGF2N(generatorPoints, sOneSum)) : "0" 
         );
 
-        *steps += fmt::format("{} + {} = {} = {}"
+        str += fmt::format("{} + {} = {} = {}"
             , ConvertNumberToBinary(xSquare, parameters.n)
             , ConvertNumberToBinary(xrMultS, parameters.n)
             , ConvertNumberToBinary(yr, parameters.n)
@@ -207,7 +233,12 @@ ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, cons
     pInverse.y = p.x ^ p.y;
 
     if (pInverse == q) 
+    {
+        if (steps)
+            *steps = fmt::format("pInverseY = {} + {} = {}", p.x, p.y, pInverse.y);
+
         throw std::runtime_error("Q equals to -P, P + -P = O, O = point at infinity");
+    }
 
     /*slope*/
     

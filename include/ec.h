@@ -25,7 +25,7 @@ struct ECCurve
 
 /*EC y^2 mod p = (x^3 + ax + b) mod p*/
 
-bool ECAlignsOn(const ECCurve &curve, const ECPoint &p);
+bool ECAlignsOn(const ECCurve &curve, const ECPoint &p, std::string *steps = nullptr);
 ECPoint ECDouble(const ECCurve &curve, const ECPoint &p, std::string *steps = nullptr);
 ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::string *steps = nullptr);
 
