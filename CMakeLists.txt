@@ -10,6 +10,11 @@ endif()
 
 list(APPEND SOURCES
     src/algos.cpp
+    src/generators.cpp
+    src/ec.cpp
+    src/rsa.cpp
+    src/shamir.cpp
+    src/elgamal.cpp
     src/handlers.cpp
     src/main.cpp
 )

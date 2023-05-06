@@ -1,6 +1,12 @@
 #include "handlers.h"
 
 #include "algos.h"
+#include "generators.h"
+#include "ec.h"
+#include "rsa.h"
+#include "shamir.h"
+#include "elgamal.h"
+
 #include <array>
 #include <string_view>
 #include <iostream>
@@ -140,7 +146,16 @@ int HandleElGamal(int argc, const char **argv)
 
     if (argc < 1 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("Enter enc/dec\n");
+        fmt::print("Enter ");
+        for (size_t i = 0; i < commands.size(); i++)
+        {
+            if (i + 1 != commands.size())
+                fmt::print("{}/", commands.at(i));
+            else
+                fmt::print("{}", commands.at(i));
+        }
+
+        fmt::print("\n");
         return -1;
     }
 
@@ -220,7 +235,16 @@ static inline int HandleEcGF2N(int argc, const char **argv)
 
     if (argc < 2 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("enter GF(2^n) sum/multiply/alignson\n");
+        fmt::print("Enter GF(2^n) ");
+        for (size_t i = 0; i < commands.size(); i++)
+        {
+            if (i + 1 != commands.size())
+                fmt::print("{}/", commands.at(i));
+            else
+                fmt::print("{}", commands.at(i));
+        }
+        fmt::print("\n");
+
         return -1;
     } 
 
@@ -376,7 +400,16 @@ static inline int HandleEcGFP(int argc, const char **argv)
 
     if (argc < 2 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("enter GF(p) sum/alignson\n");
+        fmt::print("Enter GF(p) ");
+        for (size_t i = 0; i < commands.size(); i++)
+        {
+            if (i + 1 != commands.size())
+                fmt::print("{}/", commands.at(i));
+            else
+                fmt::print("{}", commands.at(i));
+        }
+        fmt::print("\n");
+
         return -1;
     } 
 
@@ -429,7 +462,7 @@ static inline int HandleEcGFP(int argc, const char **argv)
         ECPoint p;
         p.x = atol(argv[5]);
         p.y = atol(argv[6]);
-        fmt::print("Does point ({}, {}) aligns on 'y^2 mod {} = x^3 + {}x + {} mod {}?\n", p.x, p.y, curve.p, curve.a, curve.b, curve.p);
+        fmt::print("Does point ({}, {}) aligns on y^2 mod {} = x^3 + {}x + {} mod {}?\n", p.x, p.y, curve.p, curve.a, curve.b, curve.p);
         fmt::print("{}\n", (ECAlignsOn(curve, p) ? "Yes" : "No"));
     }
 
@@ -447,7 +480,16 @@ int HandleEc(int argc, const char **argv)
 
     if (argc < 1 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("enter GF(p)/GF(2^n)\n");
+        fmt::print("Enter ");
+        for (size_t i = 0; i < commands.size(); i++)
+        {
+            if (i + 1 != commands.size())
+                fmt::print("{}/", commands.at(i));
+            else
+                fmt::print("{}", commands.at(i));
+        }
+        fmt::print("\n");
+        
         return -1;
     } 
 
@@ -472,7 +514,15 @@ int HandleIsGenerator(int argc, const char **argv)
 
     if (argc < 1 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("enter GF(p)/GF(2^n)\n");
+        fmt::print("Enter ");
+        for (size_t i = 0; i < commands.size(); i++)
+        {
+            if (i + 1 != commands.size())
+                fmt::print("{}/", commands.at(i));
+            else
+                fmt::print("{}", commands.at(i));
+        }
+        fmt::print("\n");
         return -1;
     } 
 
@@ -531,7 +581,15 @@ int HandleRsa(int argc, const char **argv)
 
     if (argc < 1 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("enter enc/dec/derivePrivKeyFromMod/deriveKeysFromPubExp/deriveKeysFromPrivExp\n");
+        fmt::print("Enter ");
+        for (size_t i = 0; i < commands.size(); i++)
+        {
+            if (i + 1 != commands.size())
+                fmt::print("{}/", commands.at(i));
+            else
+                fmt::print("{}", commands.at(i));
+        }
+        fmt::print("\n");
         return -1;
     } 
 
@@ -639,7 +697,15 @@ int HandleShamirProtocol(int argc, const char **argv)
 
     if (argc < 1 || (it = std::find_if(commands.cbegin(), commands.cend(), containsCommand)) == commands.cend())
     {
-        fmt::print("enter getSubjects/reconstruction\n");
+        fmt::print("Enter ");
+        for (size_t i = 0; i < commands.size(); i++)
+        {
+            if (i + 1 != commands.size())
+                fmt::print("{}/", commands.at(i));
+            else
+                fmt::print("{}", commands.at(i));
+        }
+        fmt::print("\n");
         return -1;
     } 
 

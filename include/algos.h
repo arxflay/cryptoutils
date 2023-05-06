@@ -3,9 +3,6 @@
 #include <string>
 #include <vector>
 
-/*Additional algorithms*/
-uint_least64_t CalculateHammingWeight(const char *data, size_t len);
-
 /*Common algorithms */
 
 std::tuple<int_fast64_t, int_fast64_t> ExtendedGCD(int_fast64_t a, int_fast64_t b);
@@ -18,21 +15,13 @@ int_fast64_t Mod(int_fast64_t num, int_fast64_t mod);
 int_fast64_t PositiveMod(int_fast64_t num, int_fast64_t mod);
 int_fast64_t GetMSB(int_fast64_t num);
 
+struct GF2NGeneratorParameters;
+int_fast64_t ReduceGF2N(const GF2NGeneratorParameters &parameters, int_fast64_t polynomial);
+
 int_fast64_t MultiplyBinary(int_fast64_t number, int_fast64_t multiplicant);
 std::string ConvertNumberToBinary(int_fast64_t number, int_fast64_t minLen);
 int_fast64_t ConvertBinaryToNumber(std::string_view binary);
 
-struct GF2NGeneratorParameters
-{
-    int_fast64_t polynomial;
-    int_fast64_t ireduciblePolynomial;
-    int_fast64_t n;
-};
-
-bool IsGeneratorGFP(int_fast64_t generator, int_fast64_t mod, std::string *steps = nullptr);
-bool IsGeneratorGF2N(const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
-
-std::vector<int_fast64_t> GetGF2NGeneratorElements(const GF2NGeneratorParameters &parameters);
 /*Factorization methods */
 
 std::tuple<int_fast64_t, int_fast64_t> DoFermantFactorization(int_fast64_t number, std::string *steps = nullptr);
@@ -55,99 +44,5 @@ struct LehmanPeraltResult
 
 LehmanPeraltResult LehmanPeralt(const std::vector<int_fast64_t> &numbers, int_fast64_t examinedNumber, std::string *steps = nullptr);
 
-/* ElGamal */
 
-struct ElGamalPublicKey
-{
-    int_fast64_t p; //prime
-    int_fast64_t q; //generator
-    int_fast64_t y; //pubkey part
-};
-
-struct ElGamalPrivateKey
-{
-    int_fast64_t p; //prime
-    int_fast64_t q; //generator  
-    int_fast64_t k; //privkey
-};
-
-struct ElGamalData
-{
-    int_fast64_t y; //pubkey part
-    int_fast64_t encData; //data
-};
-
-ElGamalData ElGamalEncrypt(const ElGamalPublicKey &pubKey, const ElGamalPrivateKey &privKey, int_fast64_t message, std::string *steps = nullptr);
-int_fast64_t ElGamalDecrypt(const ElGamalData &data, const ElGamalPrivateKey &privKey, std::string *steps = nullptr);
-ElGamalPublicKey ElGamalDerivePublicKey(const ElGamalPrivateKey &privKey, std::string *steps = nullptr);
-
-struct ECPoint
-{
-    int_fast64_t x;
-    int_fast64_t y;
-    bool operator==(const ECPoint &p) const noexcept { return x == p.x && y == p.y; }
-    bool operator!=(const ECPoint &p) const noexcept { return x != p.x || y != p.y; }
-};
-
-struct ECCurve
-{
-    int_fast64_t a;
-    int_fast64_t b;
-    int_fast64_t p;
-};
-
-bool ECAlignsOn(const ECCurve &curve, const ECPoint &p);
-ECPoint ECDouble(const ECCurve &curve, const ECPoint &p, std::string *steps = nullptr);
-ECPoint ECSum(const ECCurve &curve, const ECPoint &p, const ECPoint &q, std::string *steps = nullptr);
-
-bool ECAlignsOnGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<int_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
-ECPoint ECDoubleGF2N(const ECCurve &curve, const ECPoint &p, const std::vector<int_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
-ECPoint ECSumGF2N(const ECCurve &curve, const ECPoint &p, const ECPoint &q, const std::vector<int_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
-ECPoint ECMultiplyGF2N(const ECCurve &curve, const ECPoint &p, int_fast64_t scalar, const std::vector<int_fast64_t> &generatorPoints, const GF2NGeneratorParameters &parameters, std::string *steps = nullptr);
-
-void ECPointToStrGF2N(const ECPoint &p, const std::vector<int_fast64_t> &generatorPoints, std::string &xStr, std::string &yStr);
-void ECCurveToStrGF2N(const ECCurve &curve, const std::vector<int_fast64_t> &generatorPoints, std::string &curveA, std::string &curveB);
-int_fast64_t ECPointGetPowerGF2N(const std::vector<int_fast64_t> &generatorPoints, int_fast64_t num);
-
-struct RsaPublicKey 
-{
-    int_fast64_t n; // Module
-    int_fast64_t e; // Encryption exponent
-};
-
-struct RsaPrivateKey
-{
-    int_fast64_t n; // Module
-    int_fast64_t d; // Decryption exponent
-};
-
-/* Encrypt message with public key. */
-int_fast64_t RsaEncrypt(const RsaPublicKey &pubKey, int_fast64_t message, std::string *steps = nullptr);
-
-/* Decrypt message with private key. */
-int_fast64_t RsaDecrypt(const RsaPrivateKey &privKey, int_fast64_t message, std::string *steps = nullptr);
-
-/* Derive private key from public key. */
-RsaPrivateKey RsaDerivePrivateKeyFromModule(const RsaPublicKey &pubKey, std::string *steps = nullptr);
-
-/* Derive private and public key from p q e. */
-std::tuple<RsaPrivateKey, RsaPublicKey> RsaDeriveKeysFromPublicExponent(int_fast64_t p, int_fast64_t q, int_fast64_t e, std::string *steps = nullptr);
-
-/* Derive private and public key from p q d. */
-std::tuple<RsaPrivateKey, RsaPublicKey> RsaDeriveKeysFromPrivateExponent(int_fast64_t p, int_fast64_t q, int_fast64_t d, std::string *steps = nullptr);
-
-struct ShamirSubject
-{
-    int_fast64_t x;
-    int_fast64_t y;
-};
-
-struct ShamirParameters
-{
-    std::vector<ShamirSubject> subjects;
-    int_fast64_t p;
-};
-
-std::vector<ShamirSubject> GetShamirSubjects(const ShamirParameters &paramaters, int_fast64_t n, std::string *steps = nullptr);
-ShamirSubject DoShamirReconstruction(const ShamirParameters &paramaters, std::string *steps = nullptr);
 
