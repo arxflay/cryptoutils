@@ -71,6 +71,12 @@
         (p, z, a) = (211, 75, 17) 
         s = (c, d) = (157, 141)
             *elgamal dec 157 141 211 17*
+            
+## derivePubKey
+    prime generator privKey
+    Example:
+        (p, z, k) = (43, 12, 5)
+            *elgamal derivePubKey 43 12 5*
 
 # extgcd - Extended Greatest Common Divisor
 
