@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <fmt/core.h>
 #include <string>
+#include <stdexcept>
 
 /*GF(p) curves */
 

@@ -3,6 +3,7 @@
 #include <set>
 #include <fmt/core.h>
 #include <cmath>
+#include <stdexcept>
 
 bool IsGeneratorGFP(int_fast64_t generator, int_fast64_t mod, std::string *steps)
 {
