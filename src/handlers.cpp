@@ -29,8 +29,8 @@ int HandleExtgcd(int argc, const char **argv)
     int_fast64_t prime = std::atol(argv[1]);
 
     auto [nsd, inverseMod] = ExtendedGCD(number, prime);
-    
-    fmt::print(" nsd result = {}, Result of inverseMod = {} \n", nsd, (inverseMod >= 0 ? inverseMod : prime + inverseMod) );
+    fmt::print("<result>\n");
+    fmt::print("GCD = {}\ninverseMod of smallest = {}\n", nsd, (inverseMod >= 0 ? inverseMod : prime + inverseMod) );
 
     return 0;
 
@@ -87,7 +87,7 @@ int HandleRhoFactorization(int argc, const char **argv)
     std::string steps;
     auto [a, b] = DoRhoFactorization(number, seed, &steps);
     fmt::print("<steps>\n");
-    fmt::print("{}", steps);
+    fmt::print("{}\n", steps);
     fmt::print("<result>\n");
     fmt::print("{} * {}\n", number, a, b);
 
@@ -122,7 +122,7 @@ int HandleLhPeralt(int argc, const char **argv)
     LehmanPeraltResult result = LehmanPeralt(numbers, examinedNumber, &steps); 
 
     fmt::print("<steps>\n");
-    fmt::print("{}", steps);
+    fmt::print("{}\n", steps);
     fmt::print("<result>\n");
     if (result.flags & LehmanPeraltFlags::NOT_PRIME)
         fmt::print("Number is composite, not prime\n");
@@ -461,7 +461,7 @@ static inline int HandleEcGFP(int argc, const char **argv)
             fmt::print("<steps>\n");
             fmt::print("{}\n", steps);
             fmt::print("<result>\n");
-            fmt::print("R = ({},{})\n", steps, r.x, r.y);
+            fmt::print("R = ({},{})\n", r.x, r.y);
         }
         catch (const std::runtime_error &e)
         {
