@@ -2,7 +2,7 @@
 #include <tuple>
 #include <string>
 #include <vector>
-
+#include <cstdint>
 /*Common algorithms */
 
 std::tuple<int_fast64_t, int_fast64_t> ExtendedGCD(int_fast64_t a, int_fast64_t b);
