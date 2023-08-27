@@ -1,13 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
 project (cryptoutils VERSION 1.0 LANGUAGES CXX C)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFmt.cmake)
-
-if (NOT ${LIBFMT_FOUND})
-    message(STATUS "Using LIBFMT submodule instead")
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/fmt)
-endif()
-
 list(APPEND SOURCES
     src/algos.cpp
     src/generators.cpp
@@ -24,6 +17,7 @@ set(msvc_cxx "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
 
 add_executable(cryptoutils ${SOURCES})
 target_include_directories(cryptoutils PUBLIC include)
+include(libs/ProjectLibs.cmake)
 
 if (WIN32)
     target_link_libraries(cryptoutils PRIVATE fmt::fmt)
@@ -33,3 +27,5 @@ endif()
 
 target_compile_options(cryptoutils PRIVATE "$<${gcc_like_cxx}:-Wall;-Wextra;-Wconversion;-std=c++17>"  
                                                         "$<${msvc_cxx}:/W3;/std:c++17>")
+install(TARGETS cryptoutils RUNTIME DESTINATION bin)
+include(installer/ProjectInstaller.cmake)

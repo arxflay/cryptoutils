@@ -33,6 +33,8 @@
 
 #ignore build directory
 build/
+libs/third_party/
+libs/cmake/
 
 #ignore .vscode directory
 .vscode/
