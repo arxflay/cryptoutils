@@ -1,0 +1,71 @@
+name: cmake-build
+
+on: 
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      build_type:
+        required: true
+        type: string
+      build_arch:
+        required: true
+        type: string
+      c_compiler:
+        required: true
+        type: string
+      cpp_compiler:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ inputs.os }} 
+    steps:
+    - uses: actions/checkout@v3 
+    - name: Download fmt from repository
+      if: runner.os == 'Linux'
+      run: sudo apt install -y libfmt-dev
+
+    - name: Set reusable strings
+      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Set upload vars
+      id: uploadvars
+      shell: bash
+      run: |
+        echo "path=${{ runner.os == 'Windows' && format('{0}\{1}\cryptoutils.exe', steps.strings.outputs.build-output-dir, inputs.build_type) 
+              || format('{0}/cryptoutils', steps.strings.outputs.build-output-dir) }}" >> "$GITHUB_OUTPUT"
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ inputs.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ inputs.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ inputs.build_type }}
+        -S ${{ github.workspace }}
+        ${{ runner.os == 'Windows' && ((inputs.build_arch == 'x86' && '-A Win32') || (inputs.build_arch == 'x64' && '-A x64'))
+            || ''}}
+
+    - name: Build
+      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ inputs.build_type }}
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest --build-config ${{ inputs.build_type }}
+      
+    - name: Upload artificats
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ format('{0}_{1}_{2}', inputs.os, inputs.build_type,  inputs.build_arch) }}
+        path: ${{ steps.uploadvars.outputs.path }}
