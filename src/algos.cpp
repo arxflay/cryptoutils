@@ -74,7 +74,7 @@ int_fast64_t GetMSB(int_fast64_t num)
         num = (num & byteOfInterest) >> (8 * byte);
         for (int_fast64_t pos = 7; pos >= 0; pos--)
         {
-            if (num & (1 << pos))
+            if (num & (1ull << pos))
             {
                 index = 8 * byte + pos + 1;
                 break;
@@ -87,7 +87,7 @@ int_fast64_t GetMSB(int_fast64_t num)
 
 int_fast64_t ReduceGF2N(const GF2NGeneratorParameters &parameters, int_fast64_t polynomial)
 {
-    while(polynomial >= (1 << parameters.n))
+    while(polynomial >= (1ll << parameters.n))
     {
         int_fast64_t msb = GetMSB(polynomial);
         polynomial ^= parameters.ireduciblePolynomial << (msb - (parameters.n + 1));
@@ -101,7 +101,7 @@ int_fast64_t MultiplyBinary(int_fast64_t number, int_fast64_t multiplicant)
     int_fast64_t multiplicantMSB = GetMSB(multiplicant);
     int_fast64_t out = 0;
     for (int_fast64_t i = 0; i < multiplicantMSB; i++)
-        if (multiplicant & (1 << i))
+        if (multiplicant & (1ull << i))
             out ^= (number << i);
     
     return out;
@@ -115,7 +115,7 @@ std::string ConvertNumberToBinary(int_fast64_t number, int_fast64_t minLen)
     std::string out;
 
     for (int_fast64_t i = 0; i < minLen; i++)
-         out = ((!!(number & (1 << i))) ? "1" : "0") + out;
+         out = ((!!(number & (1ull << i))) ? "1" : "0") + out;
 
     return out;
 }
@@ -129,7 +129,7 @@ int_fast64_t ConvertBinaryToNumber(std::string_view binary)
 
     for (int i = strLen - 1; i >= 0; i--)
         if (binary[i] == '1')
-            result |= (1 << ((strLen - 1) - i));
+            result |= (1ll << ((strLen - 1) - i));
 
     return result;
 }
