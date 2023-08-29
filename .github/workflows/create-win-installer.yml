@@ -1,0 +1,29 @@
+name: create-win-installer
+
+on: [workflow_dispatch]
+
+jobs:
+  win-x64-build:
+    uses: ./.github/workflows/cmake-build.yml
+    with:
+      os: windows-2022
+      build_type: Release
+      build_arch: x64
+      c_compiler: cl
+      cpp_compiler: cl
+  create-installer:
+    runs-on: windows-2022
+    steps:
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+    - name: Create installer
+      shell: bash
+      run: |
+        echo "cpack -C ${{strings.build-output-dir}}/CPackConfig.cmake"
+    - uses: actions/upload-artifact@v3
+      with:
+        name: nsis-installer-files
+        path: "${{github.workspace}}installers/NSIS"
