@@ -34,7 +34,8 @@
 #ignore build directory
 build/
 libs/third_party/
-libs/cmake/
+cmake/CPM
+installers/
 
 #ignore .vscode directory
 .vscode/

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
-
-project (cryptoutils VERSION 1.0 LANGUAGES CXX C)
+include(cmake/ProjectVersion.cmake)
+project (cryptoutils VERSION ${VER_MAJOR}.${VER_MINOR} LANGUAGES CXX C)
 list(APPEND SOURCES
     src/algos.cpp
     src/generators.cpp
@@ -28,4 +28,4 @@ endif()
 target_compile_options(cryptoutils PRIVATE "$<${gcc_like_cxx}:-Wall;-Wextra;-Wconversion;-std=c++17>"  
                                                         "$<${msvc_cxx}:/W3;/std:c++17>")
 install(TARGETS cryptoutils RUNTIME DESTINATION bin)
-include(installer/ProjectInstaller.cmake)
+include(cmake/ProjectInstaller.cmake)
