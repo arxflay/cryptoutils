@@ -1,6 +1,6 @@
 find_package(Git REQUIRED)
 execute_process(COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR} describe --candidates=0 --abbrev=0 --tags 
-    OUTPUT_VARIABLE GIT_PROJ_TAG  ECHO_OUTPUT_VARIABLE)
+    OUTPUT_VARIABLE GIT_PROJ_TAG  ECHO_OUTPUT_VARIABLE ERROR_QUIET)
 
 string(REGEX MATCH "v([0-9]+.)+[0-9]" VERSION_TAG "${GIT_PROJ_TAG}")
 
