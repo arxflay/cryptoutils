@@ -30,11 +30,21 @@ jobs:
         exclude:
           - os: ubuntu-22.04
             build_arch: x86
-    uses: ./.github/workflows/cmake-build.yml
-    with:
-      os: ${{matrix.os}}
-      build_type: ${{ matrix.build_type }}
-      build_arch: ${{ matrix.build_arch }}
-      c_compiler: ${{ matrix.c_compiler }}
-      cpp_compiler: ${{ matrix.cpp_compiler }}
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3 
+      - uses: arxflay/cryptoutils-build-action@v1 
+        id: build-act
+        with:
+          os: ${{matrix.os}}
+          build_type: ${{ matrix.build_type }}
+          build_arch: ${{ matrix.build_arch }}
+          c_compiler: ${{ matrix.c_compiler }}
+          cpp_compiler: ${{ matrix.cpp_compiler }}
+      - name: Upload artificats
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ format('{0}_{1}_{2}', matrix.os, matrix.build_type,  matrix.build_arch) }}
+          path: ${{ steps.build-act.outputs.upload_path }}
 
