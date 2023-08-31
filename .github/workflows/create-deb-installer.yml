@@ -18,7 +18,7 @@ jobs:
       - name: Create installer
         shell: bash
         run: |
-          sh -c "cd '${{steps.build-act.outputs.build-dir}}' && cpack"
+          sh -c "cd '${{steps.build-act.outputs.build-dir}}' && cpack DEB"
       - uses: actions/upload-artifact@v3
         with:
           name: deb-installer-files
