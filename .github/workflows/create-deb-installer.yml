@@ -14,7 +14,7 @@ jobs:
           build_type: Release
           build_arch: x64
           c_compiler: clang
-          cpp_compiler: clang
+          cpp_compiler: clang++
       - name: Create installer
         shell: bash
         run: |
